@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bindInput() · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      @media (max-width: 600px) {
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+      }
+      .color-swatch {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--r-sm);
+        border: 1px solid var(--border);
+        margin-top: 0.5rem;
+      }
+      .range-track {
+        height: 16px;
+        background: var(--surface-2);
+        border-radius: var(--r-sm);
+        overflow: hidden;
+        margin-top: 0.5rem;
+      }
+      .range-fill {
+        height: 100%;
+        background: var(--primary);
+        transition: width 0.15s;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="bind-text.html">bindText()</a>
+        <a href="bind-input.html" class="active">bindInput()</a>
+        <a href="bind-class-style.html">bindClass/Style()</a>
+        <a href="bind-advanced.html">Advanced</a>
+        <a href="bind-unified.html">bind()</a>
+        <a href="security.html">Security</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <header class="page-header">
+        <h1>bindInput()</h1>
+        <p class="page-subtitle">
+          Two-way binding between any form control and a reactive value — change
+          the input or change the value, both stay in sync.
+        </p>
+      </header>
+
+      <div class="card">
+        <!-- 1. Text inputs -->
+        <div class="section">
+          <div class="section-title">1. Text inputs</div>
+          <div class="two-col">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem">
+              <input
+                class="input"
+                type="text"
+                id="in-text"
+                placeholder="Text"
+              />
+              <input
+                class="input"
+                type="email"
+                id="in-email"
+                placeholder="email@example.com"
+              />
+              <input
+                class="input"
+                type="password"
+                id="in-password"
+                placeholder="Password"
+              />
+              <div class="btn-group mt-sm">
+                <button class="btn btn-primary" id="fill-text">Fill</button>
+                <button class="btn btn-secondary" id="clear-text">Clear</button>
+              </div>
+            </div>
+            <div class="output-box">
+              <div class="stat-row">
+                <span class="stat-label">text</span><span id="out-text"></span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">email</span
+                ><span id="out-email"></span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">password</span
+                ><span id="out-password"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Number & range -->
+        <div class="section">
+          <div class="section-title">2. Number &amp; range</div>
+          <div class="two-col">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem">
+              <input
+                class="input"
+                type="number"
+                id="in-number"
+                min="0"
+                max="100"
+                placeholder="0–100"
+              />
+              <input
+                type="range"
+                id="in-range"
+                min="0"
+                max="100"
+                style="width: 100%; margin: 0.25rem 0"
+              />
+              <div class="btn-group mt-sm">
+                <button class="btn btn-primary" id="set-50">Set 50</button>
+                <button class="btn btn-secondary" id="set-random">
+                  Random
+                </button>
+              </div>
+            </div>
+            <div class="output-box">
+              <div class="stat-row">
+                <span class="stat-label">number</span
+                ><span id="out-number">0</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">range</span
+                ><span id="out-range">50</span>
+              </div>
+              <div class="range-track">
+                <div
+                  class="range-fill"
+                  id="range-fill"
+                  style="width: 50%"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Checkbox & radio -->
+        <div class="section">
+          <div class="section-title">3. Checkbox &amp; radio</div>
+          <div class="two-col">
+            <div>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  margin-bottom: 0.75rem;
+                  cursor: pointer;
+                "
+              >
+                <input type="checkbox" id="in-terms" /> Accept Terms
+              </label>
+              <div style="display: flex; flex-direction: column; gap: 0.4rem">
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                  "
+                  ><input
+                    type="radio"
+                    name="theme"
+                    id="theme-light"
+                    value="light"
+                  />
+                  Light</label
+                >
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                  "
+                  ><input
+                    type="radio"
+                    name="theme"
+                    id="theme-dark"
+                    value="dark"
+                  />
+                  Dark</label
+                >
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                  "
+                  ><input
+                    type="radio"
+                    name="theme"
+                    id="theme-auto"
+                    value="auto"
+                  />
+                  Auto</label
+                >
+              </div>
+              <div class="btn-group mt-sm">
+                <button class="btn btn-secondary" id="toggle-terms">
+                  Toggle Terms
+                </button>
+                <button class="btn btn-secondary" id="set-dark">
+                  Set Dark
+                </button>
+              </div>
+            </div>
+            <div class="output-box">
+              <div class="stat-row">
+                <span class="stat-label">terms</span
+                ><span id="out-terms">false</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">theme</span
+                ><span id="out-theme">light</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Select & textarea -->
+        <div class="section">
+          <div class="section-title">4. Select &amp; textarea</div>
+          <div class="two-col">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem">
+              <select class="input" id="in-country">
+                <option value="">Select country…</option>
+                <option value="us">United States</option>
+                <option value="uk">United Kingdom</option>
+                <option value="ca">Canada</option>
+                <option value="au">Australia</option>
+              </select>
+              <textarea
+                class="input"
+                id="in-bio"
+                rows="3"
+                placeholder="Tell us about yourself…"
+              ></textarea>
+              <button class="btn btn-primary" id="fill-form">Fill Form</button>
+            </div>
+            <div class="output-box">
+              <div class="stat-row">
+                <span class="stat-label">country</span
+                ><span id="out-country"></span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">bio</span
+                ><span
+                  id="out-bio"
+                  style="
+                    max-width: 120px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                  "
+                ></span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">chars</span
+                ><span id="out-bio-len">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Date & color -->
+        <div class="section">
+          <div class="section-title">5. Date &amp; color</div>
+          <div class="two-col">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem">
+              <input class="input" type="date" id="in-date" />
+              <input
+                type="color"
+                id="in-color"
+                value="#6366f1"
+                style="
+                  width: 48px;
+                  height: 36px;
+                  border: none;
+                  background: none;
+                  cursor: pointer;
+                "
+              />
+              <div class="btn-group mt-sm">
+                <button class="btn btn-secondary" id="set-today">Today</button>
+                <button class="btn btn-secondary" id="rand-color">
+                  Random Color
+                </button>
+              </div>
+            </div>
+            <div class="output-box">
+              <div class="stat-row">
+                <span class="stat-label">date</span><span id="out-date"></span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">color</span
+                ><span id="out-color">#6366f1</span>
+              </div>
+              <div
+                class="color-swatch"
+                id="color-swatch"
+                style="background: #6366f1"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const { reactive, bindText, bindInput, bindStyle, batch, onClick } =
+        Reactive;
+
+      // 1. Text inputs
+      const textVal = reactive({ value: "" });
+      const emailVal = reactive({ value: "" });
+      const passVal = reactive({ value: "" });
+
+      bindInput("#in-text", textVal);
+      bindInput("#in-email", emailVal);
+      bindInput("#in-password", passVal);
+
+      bindText("#out-text", textVal);
+      bindText("#out-email", emailVal);
+      bindText("#out-password", () => "•".repeat(passVal.value.length));
+
+      onClick("#fill-text", () =>
+        batch(() => {
+          textVal.value = "Hello World";
+          emailVal.value = "hello@example.com";
+          passVal.value = "secret123";
+        }),
+      );
+      onClick("#clear-text", () =>
+        batch(() => {
+          textVal.value = emailVal.value = passVal.value = "";
+        }),
+      );
+
+      // 2. Number & range
+      const numVal = reactive({ value: 0 });
+      const rangeVal = reactive({ value: 50 });
+
+      bindInput("#in-number", numVal);
+      bindInput("#in-range", rangeVal);
+
+      bindText("#out-number", numVal);
+      bindText("#out-range", rangeVal);
+      bindStyle("#range-fill", "width", () => rangeVal.value + "%");
+
+      onClick("#set-50", () => {
+        numVal.value = 50;
+        rangeVal.value = 50;
+      });
+      onClick("#set-random", () => {
+        const v = Math.floor(Math.random() * 101);
+        numVal.value = v;
+        rangeVal.value = v;
+      });
+
+      // 3. Checkbox & radio
+      const terms = reactive({ value: false });
+      const theme = reactive({ value: "light" });
+
+      bindInput("#in-terms", terms);
+      bindInput("#theme-light", theme);
+      bindInput("#theme-dark", theme);
+      bindInput("#theme-auto", theme);
+
+      bindText("#out-terms", () => String(terms.value));
+      bindText("#out-theme", theme);
+
+      onClick("#toggle-terms", () => (terms.value = !terms.value));
+      onClick("#set-dark", () => (theme.value = "dark"));
+
+      // 4. Select & textarea
+      const country = reactive({ value: "" });
+      const bio = reactive({ value: "" });
+
+      bindInput("#in-country", country);
+      bindInput("#in-bio", bio);
+
+      bindText("#out-country", country);
+      bindText("#out-bio", bio);
+      bindText("#out-bio-len", () => bio.value.length);
+
+      onClick("#fill-form", () =>
+        batch(() => {
+          country.value = "us";
+          bio.value = "I love reactive programming!";
+        }),
+      );
+
+      // 5. Date & color
+      const dateVal = reactive({ value: "" });
+      const colorVal = reactive({ value: "#6366f1" });
+
+      bindInput("#in-date", dateVal);
+      bindInput("#in-color", colorVal);
+
+      bindText("#out-date", dateVal);
+      bindText("#out-color", colorVal);
+      bindStyle("#color-swatch", "background-color", colorVal);
+
+      onClick(
+        "#set-today",
+        () => (dateVal.value = new Date().toISOString().split("T")[0]),
+      );
+      onClick(
+        "#rand-color",
+        () =>
+          (colorVal.value =
+            "#" +
+            Math.floor(Math.random() * 0xffffff)
+              .toString(16)
+              .padStart(6, "0")),
+      );
+    </script>
+  </body>
+</html>

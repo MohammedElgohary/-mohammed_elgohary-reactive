@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>watch() · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="watch.html" class="active">watch()</a>
+        <a href="watch-advanced.html">Advanced Watch</a>
+      </div>
+    </nav>
+    <main class="page">
+      <header class="page-header">
+        <h1>watch()</h1>
+        <p class="page-subtitle">
+          React to specific value changes with access to old and new values.
+        </p>
+      </header>
+
+      <div class="card">
+        <!-- 1. Basic Watch -->
+        <div class="section">
+          <div class="section-title">1. Basic Watch</div>
+          <div class="section-desc">
+            Watch a reactive value and get both old and new values on every
+            change.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="inc">Increment</button>
+            <button class="btn btn-secondary" id="dec">Decrement</button>
+            <button class="btn btn-secondary" id="set-10">Set to 10</button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">Current Value</span>
+              <span id="value">0</span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log1"></div>
+        </div>
+
+        <!-- 2. Watch with Immediate -->
+        <div class="section">
+          <div class="section-title">2. Watch with Immediate Option</div>
+          <div class="section-desc">
+            Run the callback immediately with the current value on setup.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="change-name">
+              Change Name
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">Name</span>
+              <span id="name">John</span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log2"></div>
+        </div>
+
+        <!-- 3. Watch Computed Values -->
+        <div class="section">
+          <div class="section-title">3. Watch Computed Values</div>
+          <div class="section-desc">
+            Watch computed values that derive from other reactive state.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="add-item">
+              Add Item ($10)
+            </button>
+            <button class="btn btn-secondary" id="remove-item">
+              Remove Item
+            </button>
+            <button class="btn btn-danger" id="clear-items">Clear All</button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">Items</span>
+              <span id="items">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Total</span>
+              <span>$<span id="total">0</span></span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log3"></div>
+        </div>
+
+        <!-- 4. Watch with Cleanup -->
+        <div class="section">
+          <div class="section-title">4. Watch with Cleanup</div>
+          <div class="section-desc">
+            Return a cleanup function from the callback — it runs before the
+            next invocation. Useful for cancelling debounced operations.
+          </div>
+          <div class="btn-group">
+            <input
+              class="input"
+              type="text"
+              id="search-input"
+              placeholder="Type to search..."
+            />
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">Search</span>
+              <span id="search-term"></span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Status</span>
+              <span id="search-status">Idle</span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log4"></div>
+        </div>
+
+        <!-- 5. Stop Watching -->
+        <div class="section">
+          <div class="section-title">5. Stop Watching</div>
+          <div class="section-desc">
+            watch() returns a stop function. Call it to unsubscribe at any time.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="change-value">
+              Change Value
+            </button>
+            <button class="btn btn-danger" id="stop-watch">
+              Stop Watching
+            </button>
+            <button class="btn btn-secondary" id="start-watch">
+              Start Watching
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">Value</span>
+              <span id="watched-value">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Watch Status</span>
+              <span id="watch-status">Active</span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log5"></div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const {
+        reactive,
+        computed,
+        watch,
+        bindText,
+        bindInput,
+        onClick,
+        onInput,
+      } = Reactive;
+
+      function log(id, message) {
+        const el = document.getElementById(id);
+        const time = new Date().toLocaleTimeString();
+        el.innerHTML = `[${time}] ${message}\n` + el.innerHTML;
+      }
+
+      // ── 1. Basic Watch ────────────────────────────────────────────────────
+      const counter = reactive({ value: 0 });
+
+      bindText("#value", () => counter.value);
+
+      watch(
+        () => counter.value,
+        (newVal, oldVal) =>
+          log(
+            "log1",
+            `Changed: ${oldVal} → ${newVal} (diff: ${newVal - oldVal})`,
+          ),
+      );
+
+      onClick("#inc", () => counter.value++);
+      onClick("#dec", () => counter.value--);
+      onClick("#set-10", () => (counter.value = 10));
+
+      // ── 2. Watch with Immediate ───────────────────────────────────────────
+      const person = reactive({ name: "John" });
+      const NAMES = ["John", "Jane", "Bob", "Alice", "Charlie"];
+
+      bindText("#name", () => person.name);
+
+      watch(
+        () => person.name,
+        (newVal, oldVal) =>
+          log("log2", `Name changed: "${oldVal}" → "${newVal}"`),
+        { immediate: true },
+      );
+
+      onClick("#change-name", () => {
+        const idx = NAMES.indexOf(person.name);
+        person.name = NAMES[(idx + 1) % NAMES.length];
+      });
+
+      // ── 3. Watch Computed Values ──────────────────────────────────────────
+      const cart = reactive({ list: [] });
+      const itemCount = computed(() => cart.list.length);
+      const totalPrice = computed(() => cart.list.length * 10);
+
+      bindText("#items", () => itemCount.value);
+      bindText("#total", () => totalPrice.value);
+
+      watch(totalPrice, (newVal, oldVal) => {
+        const diff = newVal - oldVal;
+        const icon = diff > 0 ? "📈" : diff < 0 ? "📉" : "➡️";
+        log("log3", `${icon} Total: $${oldVal} → $${newVal}`);
+      });
+
+      onClick("#add-item", () => cart.list.push({ price: 10 }));
+      onClick("#remove-item", () => cart.list.pop());
+      onClick("#clear-items", () => (cart.list = []));
+
+      // ── 4. Watch with Cleanup ─────────────────────────────────────────────
+      const search = reactive({ term: "" });
+
+      bindText("#search-term", () => search.term);
+
+      watch(
+        () => search.term,
+        (newVal) => {
+          log("log4", `Searching for: "${newVal}"`);
+          bindText("#search-status", () => "Searching…");
+
+          const timer = setTimeout(() => {
+            const msg = newVal ? `Found results for "${newVal}"` : "Idle";
+            document.getElementById("search-status").textContent = msg;
+            log("log4", `Search complete for: "${newVal}"`);
+          }, 500);
+
+          // cleanup: cancel pending search when term changes again
+          return () => {
+            clearTimeout(timer);
+            log("log4", `Cancelled search for: "${newVal}"`);
+          };
+        },
+      );
+
+      onInput("#search-input", (e) => (search.term = e.target.value));
+
+      // ── 5. Stop Watching ──────────────────────────────────────────────────
+      const watched = reactive({ value: 0 });
+      let stopFn = null;
+
+      function startWatching() {
+        stopFn = watch(
+          () => watched.value,
+          (newVal, oldVal) => log("log5", `Watched: ${oldVal} → ${newVal}`),
+        );
+        document.getElementById("watch-status").textContent = "Active";
+        log("log5", "Started watching");
+      }
+
+      startWatching();
+      bindText("#watched-value", () => watched.value);
+
+      onClick(
+        "#change-value",
+        () => (watched.value = Math.floor(Math.random() * 100)),
+      );
+
+      onClick("#stop-watch", () => {
+        if (stopFn) {
+          stopFn();
+          stopFn = null;
+          document.getElementById("watch-status").textContent = "Stopped";
+          log("log5", "Stopped watching");
+        }
+      });
+
+      onClick("#start-watch", () => {
+        if (!stopFn) startWatching();
+      });
+    </script>
+  </body>
+</html>

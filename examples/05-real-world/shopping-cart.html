@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shopping Cart · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+      .two-col {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.25rem;
+      }
+      @media (max-width: 768px) {
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+      }
+      .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 0.75rem;
+      }
+      .product-card {
+        border: 1px solid var(--border);
+        border-radius: var(--r-md);
+        padding: 1rem;
+        text-align: center;
+        background: var(--surface-2);
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s;
+      }
+      .product-card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-l);
+      }
+      .product-emoji {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+      }
+      .product-name {
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+      }
+      .product-price {
+        color: var(--primary);
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+      }
+      .cart-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .cart-item:last-child {
+        border-bottom: none;
+      }
+      .cart-item-info {
+        flex: 1;
+      }
+      .cart-item-name {
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+      .cart-item-price {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .qty-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .qty-btn {
+        width: 26px;
+        height: 26px;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+        border-radius: var(--r-sm);
+        cursor: pointer;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .qty-btn:hover {
+        background: var(--border);
+      }
+      .qty-val {
+        min-width: 24px;
+        text-align: center;
+        font-size: 0.9rem;
+      }
+      .cart-item-total {
+        font-weight: 600;
+        font-size: 0.9rem;
+        min-width: 60px;
+        text-align: right;
+      }
+      .remove-btn {
+        background: none;
+        border: none;
+        color: var(--danger);
+        cursor: pointer;
+        font-size: 1rem;
+        padding: 0.25rem;
+      }
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.9rem;
+      }
+      .summary-row:last-child {
+        border-bottom: none;
+      }
+      .summary-total {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: var(--primary);
+        border-top: 2px solid var(--primary);
+        margin-top: 0.25rem;
+        padding-top: 0.75rem;
+      }
+      .promo-row {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+      }
+      .cart-empty {
+        text-align: center;
+        padding: 2rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">&#9889; Reactive</a>
+      <div class="topbar-links">
+        <a href="counter.html">Counter</a>
+        <a href="todo-list.html">Todo List</a>
+        <a href="shopping-cart.html" class="active">Shopping Cart</a>
+        <a href="computed-async.html">Async Computed</a>
+      </div>
+    </nav>
+    <main class="page">
+      <header class="page-header">
+        <h1>Shopping Cart</h1>
+        <p class="page-subtitle">
+          A full reactive cart with computed totals, promo codes, and DOM
+          bindings.
+        </p>
+      </header>
+
+      <div class="two-col">
+        <div>
+          <div class="card">
+            <div class="section">
+              <div class="section-title">Products</div>
+              <div class="products-grid" id="products"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 1rem">
+          <div class="card">
+            <div class="section">
+              <div class="section-title">
+                Cart (<span id="cart-count">0</span> items)
+              </div>
+              <div id="cart-items"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section">
+              <div class="section-title">Order Summary</div>
+              <div class="summary-row">
+                <span>Subtotal</span><span id="subtotal">$0.00</span>
+              </div>
+              <div class="summary-row">
+                <span>Discount</span
+                ><span id="discount" style="color: var(--success)">-$0.00</span>
+              </div>
+              <div class="summary-row">
+                <span>Tax (8%)</span><span id="tax">$0.00</span>
+              </div>
+              <div class="summary-row">
+                <span>Shipping</span><span id="shipping">$0.00</span>
+              </div>
+              <div class="summary-row summary-total">
+                <span>Total</span><span id="total">$0.00</span>
+              </div>
+              <div class="promo-row">
+                <input
+                  class="input"
+                  style="flex: 1"
+                  type="text"
+                  id="promo-code"
+                  placeholder="Promo code"
+                />
+                <button class="btn btn-secondary" id="apply-promo">
+                  Apply
+                </button>
+              </div>
+              <div
+                id="promo-message"
+                style="font-size: 0.85rem; margin-top: 0.4rem"
+              ></div>
+              <button
+                class="btn btn-primary"
+                style="width: 100%; margin-top: 1rem"
+                id="checkout-btn"
+                disabled
+              >
+                Proceed to Checkout
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const {
+        reactive,
+        computed,
+        effect,
+        batch,
+        bindText,
+        render,
+        onClick,
+        onEnter,
+      } = Reactive;
+
+      const PRODUCTS = [
+        {
+          id: 1,
+          name: "Wireless Headphones",
+          price: 79.99,
+          emoji: "Headphones",
+        },
+        { id: 2, name: "Smart Watch", price: 199.99, emoji: "Watch" },
+        { id: 3, name: "Laptop Stand", price: 49.99, emoji: "Stand" },
+        { id: 4, name: "USB-C Hub", price: 39.99, emoji: "Hub" },
+        {
+          id: 5,
+          name: "Mechanical Keyboard",
+          price: 129.99,
+          emoji: "Keyboard",
+        },
+        { id: 6, name: "Wireless Mouse", price: 59.99, emoji: "Mouse" },
+      ];
+      const EMOJIS = {
+        1: "Headphones",
+        2: "Watch",
+        3: "Stand",
+        4: "Hub",
+        5: "Keyboard",
+        6: "Mouse",
+      };
+      const EMOJI_ICONS = {
+        1: "Headphones",
+        2: "Watch",
+        3: "Stand",
+        4: "Hub",
+        5: "Keyboard",
+        6: "Mouse",
+      };
+      const PRODUCT_ICONS = {
+        1: "🎧",
+        2: "⌚",
+        3: "💻",
+        4: "🔌",
+        5: "⌨️",
+        6: "🖱️",
+      };
+      const PROMO_CODES = {
+        SAVE10: { type: "percent", value: 10 },
+        SAVE20: { type: "percent", value: 20 },
+        FLAT50: { type: "fixed", value: 50 },
+      };
+
+      const state = reactive({
+        cart: [],
+        promoCode: "",
+        promoApplied: null,
+        promoError: "",
+      });
+
+      const cartCount = computed(() =>
+        state.cart.reduce((s, i) => s + i.quantity, 0),
+      );
+      const subtotal = computed(() =>
+        state.cart.reduce((s, i) => s + i.price * i.quantity, 0),
+      );
+      const discount = computed(() => {
+        if (!state.promoApplied) return 0;
+        if (state.promoApplied.type === "percent")
+          return subtotal.value * (state.promoApplied.value / 100);
+        return Math.min(state.promoApplied.value, subtotal.value);
+      });
+      const afterDiscount = computed(() => subtotal.value - discount.value);
+      const tax = computed(() => afterDiscount.value * 0.08);
+      const shipping = computed(() => (afterDiscount.value >= 100 ? 0 : 9.99));
+      const total = computed(
+        () => afterDiscount.value + tax.value + shipping.value,
+      );
+
+      const fmt = (n) =>
+        new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        }).format(n);
+
+      // ── Product grid ──────────────────────────────────────────────────────
+      render("#products", () =>
+        PRODUCTS.map((p) => {
+          const inCart = state.cart.find((i) => i.id === p.id);
+          return (
+            '<div class="product-card">' +
+            '<div class="product-emoji">' +
+            PRODUCT_ICONS[p.id] +
+            "</div>" +
+            '<div class="product-name">' +
+            p.name +
+            "</div>" +
+            '<div class="product-price">' +
+            fmt(p.price) +
+            "</div>" +
+            '<button class="btn ' +
+            (inCart ? "btn-secondary" : "btn-primary") +
+            '" style="width:100%;font-size:0.8rem;padding:0.4rem" onclick="addToCart(' +
+            p.id +
+            ')" ' +
+            (inCart ? "disabled" : "") +
+            ">" +
+            (inCart ? "In Cart" : "Add to Cart") +
+            "</button>" +
+            "</div>"
+          );
+        }).join(""),
+      );
+
+      // ── Cart items ────────────────────────────────────────────────────────
+      render("#cart-items", () => {
+        if (!state.cart.length)
+          return '<div class="cart-empty">Your cart is empty</div>';
+        return state.cart
+          .map(
+            (item) =>
+              '<div class="cart-item">' +
+              '<div style="font-size:1.8rem">' +
+              PRODUCT_ICONS[item.id] +
+              "</div>" +
+              '<div class="cart-item-info">' +
+              '<div class="cart-item-name">' +
+              item.name +
+              "</div>" +
+              '<div class="cart-item-price">' +
+              fmt(item.price) +
+              "</div>" +
+              "</div>" +
+              '<div class="qty-controls">' +
+              '<button class="qty-btn" onclick="updateQty(' +
+              item.id +
+              ',-1)">-</button>' +
+              '<span class="qty-val">' +
+              item.quantity +
+              "</span>" +
+              '<button class="qty-btn" onclick="updateQty(' +
+              item.id +
+              ',1)">+</button>' +
+              "</div>" +
+              '<div class="cart-item-total">' +
+              fmt(item.price * item.quantity) +
+              "</div>" +
+              '<button class="remove-btn" onclick="removeFromCart(' +
+              item.id +
+              ')" aria-label="Remove">x</button>' +
+              "</div>",
+          )
+          .join("");
+      });
+
+      bindText("#cart-count", cartCount);
+      bindText("#subtotal", () => fmt(subtotal.value));
+      bindText("#discount", () => "-" + fmt(discount.value));
+      bindText("#tax", () => fmt(tax.value));
+      bindText("#shipping", () =>
+        shipping.value === 0 ? "FREE" : fmt(shipping.value),
+      );
+      bindText("#total", () => fmt(total.value));
+
+      effect(() => {
+        const el = document.getElementById("promo-message");
+        if (state.promoApplied) {
+          el.style.color = "var(--success)";
+          el.textContent =
+            'Promo "' +
+            state.promoCode +
+            '" applied! You save ' +
+            fmt(discount.value);
+        } else if (state.promoError) {
+          el.style.color = "var(--danger)";
+          el.textContent = state.promoError;
+        } else {
+          el.textContent = "";
+        }
+      });
+
+      effect(() => {
+        document.getElementById("checkout-btn").disabled =
+          state.cart.length === 0;
+      });
+
+      // ── Cart actions (used inside render() templates) ─────────────────────
+      window.addToCart = (id) => {
+        const p = PRODUCTS.find((x) => x.id === id);
+        if (p && !state.cart.find((i) => i.id === id))
+          state.cart.push({ ...p, quantity: 1 });
+      };
+      window.removeFromCart = (id) => {
+        const idx = state.cart.findIndex((i) => i.id === id);
+        if (idx !== -1) state.cart.splice(idx, 1);
+      };
+      window.updateQty = (id, delta) => {
+        const item = state.cart.find((i) => i.id === id);
+        if (item) item.quantity = Math.max(1, item.quantity + delta);
+      };
+
+      // ── Promo code ────────────────────────────────────────────────────────
+      function applyPromo() {
+        const code = document
+          .getElementById("promo-code")
+          .value.trim()
+          .toUpperCase();
+        const promo = PROMO_CODES[code];
+        batch(() => {
+          if (promo) {
+            state.promoCode = code;
+            state.promoApplied = promo;
+            state.promoError = "";
+          } else {
+            state.promoApplied = null;
+            state.promoError = code ? "Invalid promo code" : "";
+          }
+        });
+      }
+
+      onClick("#apply-promo", applyPromo);
+      onEnter("#promo-code", applyPromo);
+
+      onClick("#checkout-btn", () => {
+        alert(
+          "Order placed!\n\nTotal: " +
+            fmt(total.value) +
+            "\nItems: " +
+            cartCount.value +
+            "\n\nThank you!",
+        );
+        batch(() => {
+          state.cart = [];
+          state.promoApplied = null;
+          state.promoCode = "";
+        });
+        document.getElementById("promo-code").value = "";
+      });
+    </script>
+  </body>
+</html>

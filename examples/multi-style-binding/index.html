@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Multi-Style Binding · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+      .demo-box {
+        width: 160px;
+        height: 160px;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        text-align: center;
+        cursor: pointer;
+        font-size: 0.85rem;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="../02-dom-binding/bind-class-style.html">bindClass/Style()</a>
+        <a href="index.html" class="active">Multi-Style</a>
+      </div>
+    </nav>
+    <main class="page">
+      <header class="page-header">
+        <h1>Multi-Style Binding</h1>
+        <p class="page-subtitle">
+          Three ways to bind multiple styles reactively: individual
+          <code>bindStyle()</code>, object-based <code>bindStyles()</code>, and
+          reactive style objects.
+        </p>
+      </header>
+
+      <!-- Method comparison -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">Method 1 — Individual bindStyle()</div>
+          <div class="section-desc">
+            Bind each CSS property separately with its own reactive source.
+          </div>
+          <div
+            class="output-box"
+            style="font-family: monospace; font-size: 0.85rem; line-height: 1.8"
+          >
+            bindStyle('#box1', 'background-color', () =&gt;
+            state.backgroundColor);<br />
+            bindStyle('#box1', 'color', () =&gt; state.color);<br />
+            bindStyle('#box1', 'border-radius', () =&gt; state.borderRadius);
+          </div>
+        </div>
+        <div class="section">
+          <div class="section-title">
+            Method 2 — bindStyles() with functions
+          </div>
+          <div class="section-desc">
+            Pass a map of property → getter function in one call.
+          </div>
+          <div
+            class="output-box"
+            style="font-family: monospace; font-size: 0.85rem; line-height: 1.8"
+          >
+            bindStyles('#box2', {<br />
+            &nbsp;&nbsp;'background-color': () =&gt; state.backgroundColor,<br />
+            &nbsp;&nbsp;'color': () =&gt; state.color,<br />
+            &nbsp;&nbsp;'transform': () =&gt; state.transform<br />
+            });
+          </div>
+        </div>
+        <div class="section">
+          <div class="section-title">
+            Method 3 — bindStyles() with reactive object
+          </div>
+          <div class="section-desc">
+            Bind directly to a reactive style object — mutations auto-propagate.
+          </div>
+          <div
+            class="output-box"
+            style="font-family: monospace; font-size: 0.85rem; line-height: 1.8"
+          >
+            const styleObject = reactive({ 'background-color': '#ff6b6b', ...
+            });<br />
+            bindStyles('#box3', styleObject);
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo boxes -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">
+            Live Demo — Click any box for a random color
+          </div>
+          <div
+            class="output-box"
+            style="
+              display: flex;
+              gap: 1.5rem;
+              justify-content: center;
+              flex-wrap: wrap;
+              padding: 2rem;
+            "
+          >
+            <div class="demo-box" id="box1">
+              Method 1<br />Individual<br />bindStyle()
+            </div>
+            <div class="demo-box" id="box2">
+              Method 2<br />bindStyles()<br />with functions
+            </div>
+            <div class="demo-box" id="box3">
+              Method 3<br />bindStyles()<br />reactive object
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">Style Controls</div>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+              gap: 1rem;
+            "
+          >
+            <div>
+              <label class="input-label">Background Color</label>
+              <input
+                type="color"
+                id="bgColor"
+                value="#ff6b6b"
+                class="input"
+                style="height: 2.5rem; padding: 0.25rem"
+              />
+            </div>
+            <div>
+              <label class="input-label">Text Color</label>
+              <input
+                type="color"
+                id="textColor"
+                value="#ffffff"
+                class="input"
+                style="height: 2.5rem; padding: 0.25rem"
+              />
+            </div>
+            <div>
+              <label class="input-label"
+                >Border Radius — <span id="radiusValue">10px</span></label
+              >
+              <input
+                type="range"
+                id="borderRadius"
+                min="0"
+                max="50"
+                value="10"
+                class="input"
+                style="padding: 0.5rem 0"
+              />
+            </div>
+            <div>
+              <label class="input-label"
+                >Font Size — <span id="fontSizeValue">16px</span></label
+              >
+              <input
+                type="range"
+                id="fontSize"
+                min="12"
+                max="32"
+                value="16"
+                class="input"
+                style="padding: 0.5rem 0"
+              />
+            </div>
+            <div>
+              <label class="input-label"
+                >Rotation — <span id="rotationValue">0deg</span></label
+              >
+              <input
+                type="range"
+                id="rotation"
+                min="0"
+                max="360"
+                value="0"
+                class="input"
+                style="padding: 0.5rem 0"
+              />
+            </div>
+            <div>
+              <label class="input-label"
+                >Scale — <span id="scaleValue">100%</span></label
+              >
+              <input
+                type="range"
+                id="scale"
+                min="50"
+                max="150"
+                value="100"
+                class="input"
+                style="padding: 0.5rem 0"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Load the IIFE build FIRST -->
+    <script src="../../dist/reactive.iife.js"></script>
+
+    <script type="module">
+      const { reactive, bindStyles, bindStyle, bindText } =
+        window.Reactive;
+
+      const state = reactive({
+        backgroundColor: "#ff6b6b",
+        color: "#ffffff",
+        borderRadius: "10px",
+        fontSize: "16px",
+        transform: "rotate(0deg) scale(1)",
+      });
+
+      const styleObject = reactive({
+        "background-color": "#ff6b6b",
+        color: "#ffffff",
+        "border-radius": "10px",
+        "font-size": "16px",
+        transform: "rotate(0deg) scale(1)",
+      });
+
+      // Method 1: Individual style bindings
+      bindStyle("#box1", "background-color", () => state.backgroundColor);
+      bindStyle("#box1", "color", () => state.color);
+      bindStyle("#box1", "border-radius", () => state.borderRadius);
+      bindStyle("#box1", "font-size", () => state.fontSize);
+      bindStyle("#box1", "transform", () => state.transform);
+
+      // Method 2: Multiple styles with individual reactive sources
+      bindStyles("#box2", {
+        "background-color": () => state.backgroundColor,
+        color: () => state.color,
+        "border-radius": () => state.borderRadius,
+        "font-size": () => state.fontSize,
+        transform: () => state.transform,
+      });
+
+      // Method 3: Bind to a reactive style object
+      bindStyles("#box3", styleObject);
+
+      const bgColorInput = document.getElementById("bgColor");
+      const textColorInput = document.getElementById("textColor");
+      const borderRadiusInput = document.getElementById("borderRadius");
+      const fontSizeInput = document.getElementById("fontSize");
+      const rotationInput = document.getElementById("rotation");
+      const scaleInput = document.getElementById("scale");
+
+      function syncAll(key, cssKey, value) {
+        state[key] = value;
+        styleObject[cssKey] = value;
+      }
+
+      bgColorInput.addEventListener("input", (e) => {
+        syncAll("backgroundColor", "background-color", e.target.value);
+      });
+      textColorInput.addEventListener("input", (e) => {
+        syncAll("color", "color", e.target.value);
+      });
+      borderRadiusInput.addEventListener("input", (e) => {
+        const v = e.target.value + "px";
+        syncAll("borderRadius", "border-radius", v);
+      });
+      fontSizeInput.addEventListener("input", (e) => {
+        const v = e.target.value + "px";
+        syncAll("fontSize", "font-size", v);
+      });
+
+      function updateTransform() {
+        const t = `rotate(${rotationInput.value}deg) scale(${scaleInput.value / 100})`;
+        syncAll("transform", "transform", t);
+      }
+      rotationInput.addEventListener("input", updateTransform);
+      scaleInput.addEventListener("input", updateTransform);
+
+      bindText("#radiusValue", () => state.borderRadius);
+      bindText("#fontSizeValue", () => state.fontSize);
+      bindText("#rotationValue", () => rotationInput.value + "deg");
+      bindText("#scaleValue", () => scaleInput.value + "%");
+
+      document.querySelectorAll(".demo-box").forEach((box) => {
+        box.addEventListener("click", () => {
+          const randomColor =
+            "#" +
+            Math.floor(Math.random() * 16777215)
+              .toString(16)
+              .padStart(6, "0");
+          bgColorInput.value = randomColor;
+          bgColorInput.dispatchEvent(new Event("input"));
+        });
+      });
+    </script>
+  </body>
+</html>

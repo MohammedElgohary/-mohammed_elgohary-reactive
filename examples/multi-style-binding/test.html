@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bindStyles Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      .test-box {
+        width: 100px;
+        height: 100px;
+        border: 1px solid #ccc;
+        margin: 10px;
+        display: inline-block;
+      }
+      .status {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>bindStyles Function Test</h1>
+
+    <div id="test1" class="test-box">Test 1</div>
+    <div id="test2" class="test-box">Test 2</div>
+    <div id="test3" class="test-box">Test 3</div>
+
+    <div id="status"></div>
+
+    <button onclick="runTests()">Run Tests</button>
+
+    <script src="../../dist/reactive.iife.js"></script>
+    <script>
+      const { reactive, bindStyles, bindStyle } = window.Reactive;
+
+      function runTests() {
+        const statusDiv = document.getElementById("status");
+        let results = [];
+
+        try {
+          // Test 1: Individual reactive sources
+          const state1 = reactive({
+            backgroundColor: "red",
+            color: "white",
+            fontSize: "14px",
+          });
+
+          bindStyles("#test1", {
+            "background-color": () => state1.backgroundColor,
+            color: () => state1.color,
+            "font-size": () => state1.fontSize,
+          });
+
+          // Change values
+          state1.backgroundColor = "blue";
+          state1.color = "yellow";
+          state1.fontSize = "18px";
+
+          // Check if styles were applied
+          const test1 = document.getElementById("test1");
+          const test1Styles = window.getComputedStyle(test1);
+
+          if (
+            test1Styles.backgroundColor === "rgb(0, 0, 255)" && // blue
+            test1Styles.color === "rgb(255, 255, 0)" && // yellow
+            test1Styles.fontSize === "18px"
+          ) {
+            results.push("✅ Test 1 (Individual sources): PASSED");
+          } else {
+            results.push("❌ Test 1 (Individual sources): FAILED");
+          }
+
+          // Test 2: Reactive style object
+          const styles2 = reactive({
+            "background-color": "green",
+            color: "white",
+            "font-size": "16px",
+          });
+
+          bindStyles("#test2", styles2);
+
+          // Change the style object
+          styles2["background-color"] = "purple";
+          styles2["color"] = "lime";
+          styles2["font-size"] = "20px";
+
+          // Check if styles were applied
+          const test2 = document.getElementById("test2");
+          const test2Styles = window.getComputedStyle(test2);
+
+          if (
+            test2Styles.backgroundColor === "rgb(128, 0, 128)" && // purple
+            test2Styles.color === "rgb(0, 255, 0)" && // lime
+            test2Styles.fontSize === "20px"
+          ) {
+            results.push("✅ Test 2 (Reactive object): PASSED");
+          } else {
+            results.push("❌ Test 2 (Reactive object): FAILED");
+          }
+
+          // Test 3: Compare with individual bindStyle calls
+          const state3 = reactive({
+            backgroundColor: "orange",
+            color: "black",
+            fontSize: "12px",
+          });
+
+          bindStyle("#test3", "background-color", () => state3.backgroundColor);
+          bindStyle("#test3", "color", () => state3.color);
+          bindStyle("#test3", "font-size", () => state3.fontSize);
+
+          // Change values
+          state3.backgroundColor = "cyan";
+          state3.color = "red";
+          state3.fontSize = "22px";
+
+          // Check if styles were applied
+          const test3 = document.getElementById("test3");
+          const test3Styles = window.getComputedStyle(test3);
+
+          if (
+            test3Styles.backgroundColor === "rgb(0, 255, 255)" && // cyan
+            test3Styles.color === "rgb(255, 0, 0)" && // red
+            test3Styles.fontSize === "22px"
+          ) {
+            results.push("✅ Test 3 (Individual bindStyle): PASSED");
+          } else {
+            results.push("❌ Test 3 (Individual bindStyle): FAILED");
+          }
+
+          // Display results
+          const allPassed = results.every((r) => r.includes("PASSED"));
+          statusDiv.innerHTML = `
+                    <div class="${allPassed ? "success" : "error"}">
+                        <h3>Test Results:</h3>
+                        ${results.map((r) => `<div>${r}</div>`).join("")}
+                        <br>
+                        <strong>${
+                          allPassed
+                            ? "All tests passed! 🎉"
+                            : "Some tests failed 😞"
+                        }</strong>
+                    </div>
+                `;
+        } catch (error) {
+          statusDiv.innerHTML = `
+                    <div class="error">
+                        <h3>Test Error:</h3>
+                        <div>❌ ${error.message}</div>
+                    </div>
+                `;
+        }
+      }
+
+      // Run tests automatically after a short delay
+      setTimeout(runTests, 100);
+    </script>
+  </body>
+</html>

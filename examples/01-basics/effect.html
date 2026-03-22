@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>effect() · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="reactive.html">reactive()</a>
+        <a href="computed.html">computed()</a>
+        <a href="effect.html" class="active">effect()</a>
+        <a href="batch.html">batch()</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <header class="page-header">
+        <h1>effect()</h1>
+        <p class="page-subtitle">
+          Run side effects automatically whenever reactive dependencies change —
+          with optional cleanup.
+        </p>
+      </header>
+
+      <div class="card">
+        <!-- 1. Basic effect -->
+        <div class="section">
+          <div class="section-title">1. Basic effect</div>
+          <div class="section-desc">
+            Effects run immediately on creation, then re-run whenever any
+            reactive value they read changes.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="change-value">
+              Change Value
+            </button>
+          </div>
+          <div class="log-box mt-sm" id="log1"></div>
+        </div>
+
+        <!-- 2. Cleanup -->
+        <div class="section">
+          <div class="section-title">2. Effect with cleanup</div>
+          <div class="section-desc">
+            Return a function from an effect to clean up before the next run —
+            perfect for timers, subscriptions, and listeners.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="start-timer">
+              Start Timer
+            </button>
+            <button class="btn btn-danger" id="stop-effect">Stop Effect</button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">elapsed</span
+              ><span id="out-timer">0</span>s
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">status</span
+              ><span id="out-status">Idle</span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log2"></div>
+        </div>
+
+        <!-- 3. Multiple dependencies -->
+        <div class="section">
+          <div class="section-title">3. Multiple dependencies</div>
+          <div class="section-desc">
+            Effects automatically track every reactive value they read — no
+            dependency array needed.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="change-a">Change A</button>
+            <button class="btn btn-secondary" id="change-b">Change B</button>
+            <button class="btn btn-secondary" id="change-both">
+              Change Both
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">a</span><span id="out-a">1</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">b</span><span id="out-b">2</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">sum</span><span id="out-sum">3</span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log3"></div>
+        </div>
+
+        <!-- 4. Conditional dependencies -->
+        <div class="section">
+          <div class="section-title">4. Conditional dependencies</div>
+          <div class="section-desc">
+            Dependencies are tracked dynamically based on which branch executes
+            — switching mode changes which values are tracked.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="toggle-mode">
+              Toggle Mode
+            </button>
+            <button class="btn btn-secondary" id="change-x">Change X</button>
+            <button class="btn btn-secondary" id="change-y">Change Y</button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">mode</span><span id="out-mode">A</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">x</span><span id="out-x">10</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">y</span><span id="out-y">20</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">result</span
+              ><span id="out-result">10</span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log4"></div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const { reactive, effect, bindText, onClick, batch } = Reactive;
+
+      function log(id, msg) {
+        const el = document.getElementById(id);
+        const t = new Date().toLocaleTimeString();
+        el.innerHTML = `[${t}] ${msg}\n` + el.innerHTML;
+      }
+
+      // 1. Basic effect
+      const s1 = reactive({ value: 0 });
+      effect(() => log("log1", `Effect ran — value: ${s1.value}`));
+      onClick(
+        "#change-value",
+        () => (s1.value = Math.floor(Math.random() * 100)),
+      );
+
+      // 2. Cleanup
+      const timer = reactive({ value: 0 });
+      let intervalId = null;
+      let stopEffect = null;
+
+      bindText("#out-timer", () => timer.value);
+
+      onClick("#start-timer", () => {
+        if (intervalId) return;
+        stopEffect = effect(() => {
+          log("log2", `Timer tick: ${timer.value}s`);
+          return () => log("log2", "Cleanup — removing previous tick");
+        });
+        intervalId = setInterval(() => timer.value++, 1000);
+        bindText("#out-status", () => "Running");
+        log("log2", "Timer started");
+      });
+
+      onClick("#stop-effect", () => {
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
+        }
+        if (stopEffect) {
+          stopEffect();
+          stopEffect = null;
+        }
+        document.getElementById("out-status").textContent = "Stopped";
+        log("log2", "Effect stopped");
+      });
+
+      // 3. Multiple dependencies
+      const vals = reactive({ a: 1, b: 2 });
+      let runCount3 = 0;
+
+      effect(() => {
+        runCount3++;
+        const sum = vals.a + vals.b;
+        document.getElementById("out-a").textContent = vals.a;
+        document.getElementById("out-b").textContent = vals.b;
+        document.getElementById("out-sum").textContent = sum;
+        log("log3", `Run #${runCount3}: ${vals.a} + ${vals.b} = ${sum}`);
+      });
+
+      onClick("#change-a", () => vals.a++);
+      onClick("#change-b", () => vals.b++);
+      onClick("#change-both", () =>
+        batch(() => {
+          vals.a++;
+          vals.b++;
+        }),
+      );
+
+      // 4. Conditional dependencies
+      const cond = reactive({ mode: "A", x: 10, y: 20 });
+
+      effect(() => {
+        bindText("#out-mode", () => cond.mode);
+        bindText("#out-x", () => cond.x);
+        bindText("#out-y", () => cond.y);
+
+        const result = cond.mode === "A" ? cond.x : cond.y;
+        document.getElementById("out-result").textContent = result;
+        log(
+          "log4",
+          `Mode ${cond.mode}: using ${cond.mode === "A" ? "X" : "Y"} = ${result}`,
+        );
+      });
+
+      onClick(
+        "#toggle-mode",
+        () => (cond.mode = cond.mode === "A" ? "B" : "A"),
+      );
+      onClick("#change-x", () => cond.x++);
+      onClick("#change-y", () => cond.y++);
+    </script>
+  </body>
+</html>

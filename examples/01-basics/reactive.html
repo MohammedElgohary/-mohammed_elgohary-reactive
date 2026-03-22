@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>reactive() · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="reactive.html" class="active">reactive()</a>
+        <a href="computed.html">computed()</a>
+        <a href="effect.html">effect()</a>
+        <a href="batch.html">batch()</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <header class="page-header">
+        <h1>reactive()</h1>
+        <p class="page-subtitle">
+          Wrap any value — primitive, object, or array — and subscribers update
+          automatically when it changes.
+        </p>
+      </header>
+
+      <div class="card">
+        <!-- 1. Primitives -->
+        <div class="section">
+          <div class="section-title">1. Primitive values</div>
+          <div class="section-desc">
+            Numbers, booleans, and strings are wrapped in a
+            <code>{ value }</code> container for a consistent access pattern.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="inc-num">+ Number</button>
+            <button class="btn btn-secondary" id="toggle-bool">
+              Toggle Bool
+            </button>
+            <button class="btn btn-secondary" id="change-str">
+              Change String
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">number</span><span id="out-num">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">boolean</span
+              ><span id="out-bool">false</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">string</span
+              ><span id="out-str">hello</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Objects -->
+        <div class="section">
+          <div class="section-title">2. Reactive objects</div>
+          <div class="section-desc">
+            Objects are deeply reactive — mutate any property and every
+            dependent subscriber re-runs automatically.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="change-name">Name</button>
+            <button class="btn btn-secondary" id="change-role">Role</button>
+            <button class="btn btn-secondary" id="add-skill">Add Skill</button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">name</span
+              ><span id="out-name">Alice</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">role</span
+              ><span id="out-role">Engineer</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">skills</span
+              ><span id="out-skills">TypeScript</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Arrays -->
+        <div class="section">
+          <div class="section-title">3. Reactive arrays</div>
+          <div class="section-desc">
+            Arrays nested inside reactive objects are also reactive —
+            <code>push</code>, <code>pop</code>, and <code>splice</code> all
+            trigger updates.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="push-item">Push</button>
+            <button class="btn btn-secondary" id="pop-item">Pop</button>
+            <button class="btn btn-danger" id="clear-items">Clear</button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">items</span
+              ><span id="out-items">[]</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">length</span
+              ><span id="out-length">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Nested objects -->
+        <div class="section">
+          <div class="section-title">4. Nested objects</div>
+          <div class="section-desc">
+            Deep mutations are tracked automatically — no need to replace the
+            whole object.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="change-city">
+              Change City
+            </button>
+            <button class="btn btn-secondary" id="change-country">
+              Change Country
+            </button>
+            <button class="btn btn-secondary" id="replace-address">
+              Replace Address
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">city</span
+              ><span id="out-city">London</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">country</span
+              ><span id="out-country">UK</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">zip</span><span id="out-zip">EC1A</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const { reactive, bindText, onClick } = Reactive;
+
+      // 1. Primitives
+      const prim = reactive({ num: 0, bool: false, str: "hello" });
+
+      bindText("#out-num", () => prim.num);
+      bindText("#out-bool", () => prim.bool);
+      bindText("#out-str", () => prim.str);
+
+      onClick("#inc-num", () => prim.num++);
+      onClick("#toggle-bool", () => (prim.bool = !prim.bool));
+      onClick(
+        "#change-str",
+        () => (prim.str = prim.str === "hello" ? "world" : "hello"),
+      );
+
+      // 2. Objects
+      const NAMES = ["Alice", "Bob", "Carol", "Dan"];
+      const ROLES = ["Engineer", "Designer", "PM", "DevRel"];
+      const SKILLS = ["React", "Vue", "Node.js", "Rust", "Go", "Python"];
+
+      const user = reactive({
+        name: "Alice",
+        role: "Engineer",
+        skills: ["TypeScript"],
+      });
+
+      bindText("#out-name", () => user.name);
+      bindText("#out-role", () => user.role);
+      bindText("#out-skills", () => user.skills.join(", "));
+
+      onClick("#change-name", () => {
+        const i = (NAMES.indexOf(user.name) + 1) % NAMES.length;
+        user.name = NAMES[i];
+      });
+      onClick("#change-role", () => {
+        const i = (ROLES.indexOf(user.role) + 1) % ROLES.length;
+        user.role = ROLES[i];
+      });
+      onClick("#add-skill", () => {
+        const next = SKILLS.find((s) => !user.skills.includes(s));
+        if (next) user.skills.push(next);
+        else user.skills = ["TypeScript"];
+      });
+
+      // 3. Arrays
+      const list = reactive({ items: [] });
+      let counter = 0;
+
+      bindText("#out-items", () => JSON.stringify(list.items));
+      bindText("#out-length", () => list.items.length);
+
+      onClick("#push-item", () => list.items.push(`item-${++counter}`));
+      onClick("#pop-item", () => list.items.pop());
+      onClick("#clear-items", () => (list.items = []));
+
+      // 4. Nested objects
+      const CITIES = ["London", "Paris", "Berlin", "Tokyo", "Sydney"];
+      const COUNTRIES = ["UK", "France", "Germany", "Japan", "Australia"];
+
+      const profile = reactive({
+        address: { city: "London", country: "UK", zip: "EC1A" },
+      });
+
+      bindText("#out-city", () => profile.address.city);
+      bindText("#out-country", () => profile.address.country);
+      bindText("#out-zip", () => profile.address.zip);
+
+      onClick("#change-city", () => {
+        const i = (CITIES.indexOf(profile.address.city) + 1) % CITIES.length;
+        profile.address.city = CITIES[i];
+      });
+      onClick("#change-country", () => {
+        const i =
+          (COUNTRIES.indexOf(profile.address.country) + 1) % COUNTRIES.length;
+        profile.address.country = COUNTRIES[i];
+      });
+      onClick("#replace-address", () => {
+        profile.address = { city: "New York", country: "USA", zip: "10001" };
+      });
+    </script>
+  </body>
+</html>

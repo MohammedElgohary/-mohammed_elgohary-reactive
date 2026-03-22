@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Debug Utilities · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="utilities.html">Utilities</a>
+        <a href="debug.html" class="active">Debug</a>
+      </div>
+    </nav>
+    <main class="page">
+      <header class="page-header">
+        <h1>Debug Utilities</h1>
+        <p class="page-subtitle">
+          setDebug, trackReactive, getDebugInfo — development-only tools.
+        </p>
+      </header>
+
+      <div class="card">
+        <!-- 1. setDebug -->
+        <div class="section">
+          <div class="section-title">
+            1. setDebug() — Enable/Disable Debug Mode
+          </div>
+          <div class="section-desc">
+            Enable debug mode to get console warnings for readonly modifications
+            and other issues.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="toggle-debug">
+              Toggle Debug Mode
+            </button>
+            <button class="btn btn-secondary" id="try-readonly">
+              Try Modify Readonly
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">Debug Mode</span
+              ><span id="debug-status">OFF</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">isDebugEnabled()</span
+              ><span id="debug-enabled">false</span>
+            </div>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem">
+            Open browser console to see debug messages when enabled.
+          </p>
+        </div>
+
+        <!-- 2. trackReactive -->
+        <div class="section">
+          <div class="section-title">
+            2. trackReactive() — Track Reactive Values
+          </div>
+          <div class="section-desc">
+            Register reactive values with names for easier debugging.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="create-tracked">
+              Create Tracked Values
+            </button>
+            <button class="btn btn-secondary" id="modify-tracked">
+              Modify Values
+            </button>
+            <button class="btn btn-secondary" id="log-tracked">
+              Log All Tracked
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">Tracked values created</span
+              ><span id="tracked-count">0</span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log2">
+            Click "Create Tracked Values" to start...
+          </div>
+        </div>
+
+        <!-- 3. getDebugInfo -->
+        <div class="section">
+          <div class="section-title">
+            3. getDebugInfo() — Get Debug Information
+          </div>
+          <div class="section-desc">
+            Get detailed information about a tracked reactive value.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="create-debug-value">
+              Create Debug Value
+            </button>
+            <button class="btn btn-secondary" id="modify-debug-value">
+              Modify Value
+            </button>
+            <button class="btn btn-secondary" id="get-debug-info">
+              Get Debug Info
+            </button>
+          </div>
+          <div class="log-box mt-sm" id="log3">
+            Click "Create Debug Value" to start...
+          </div>
+        </div>
+
+        <!-- 4. clearDebugTracking -->
+        <div class="section">
+          <div class="section-title">
+            4. clearDebugTracking() — Clear All Tracking
+          </div>
+          <div class="section-desc">
+            Clear all tracked reactive values to free memory.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-danger" id="clear-tracking">
+              Clear All Tracking
+            </button>
+            <button class="btn btn-secondary" id="check-tracking">
+              Check Tracking Status
+            </button>
+          </div>
+          <div class="output-box mt-sm" id="tracking-status">
+            <div class="stat-row">
+              <span class="stat-label">Status</span
+              ><span>No tracking data yet.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Practical Debug Workflow -->
+        <div class="section">
+          <div class="section-title">5. Practical Debug Workflow</div>
+          <div class="section-desc">
+            A complete example showing how to debug a reactive application.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="start-debug-session">
+              Start Debug Session
+            </button>
+            <button class="btn btn-secondary" id="simulate-bug">
+              Simulate Bug
+            </button>
+            <button class="btn btn-secondary" id="inspect-state">
+              Inspect State
+            </button>
+            <button class="btn btn-danger" id="end-debug-session">
+              End Debug Session
+            </button>
+          </div>
+          <div class="log-box mt-sm" id="log5">
+            Click "Start Debug Session" to begin...
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const {
+        reactive,
+        computed,
+        effect,
+        readonly,
+        setDebug,
+        isDebugEnabled,
+        trackReactive,
+        getDebugInfo,
+        logTrackedReactive,
+        clearDebugTracking,
+        bindText,
+        onClick,
+      } = Reactive;
+
+      function log(id, message) {
+        const el = document.getElementById(id);
+        const time = new Date().toLocaleTimeString();
+        el.textContent = `[${time}] ${message}\n` + el.textContent;
+      }
+
+      function refreshDebugStatus() {
+        const on = isDebugEnabled();
+        document.getElementById("debug-enabled").textContent = on;
+        document.getElementById("debug-status").textContent = on ? "ON" : "OFF";
+        document.getElementById("debug-status").style.color = on
+          ? "var(--success)"
+          : "var(--danger)";
+      }
+
+      // ── 1. setDebug ───────────────────────────────────────────────────────
+      const roValue = readonly(reactive(42));
+
+      onClick("#toggle-debug", () => {
+        setDebug(!isDebugEnabled());
+        refreshDebugStatus();
+        console.log("Debug mode", isDebugEnabled() ? "enabled" : "disabled");
+      });
+
+      onClick("#try-readonly", () => {
+        console.log("Attempting to modify readonly value…");
+        try {
+          roValue.value = 100;
+          console.log(
+            "Modification attempted (check for warnings if debug is ON)",
+          );
+        } catch (e) {
+          console.error("Error:", e.message);
+        }
+      });
+
+      refreshDebugStatus();
+
+      // ── 2. trackReactive ──────────────────────────────────────────────────
+      let trackedValues = [];
+
+      onClick("#create-tracked", () => {
+        trackedValues = [];
+        const counter = reactive({ value: 0 });
+        const user = reactive({ name: "John", age: 25 });
+        const items = reactive({ list: [] });
+        trackReactive(counter, "counter");
+        trackReactive(user, "user");
+        trackReactive(items, "items");
+        trackedValues = [counter, user, items];
+        document.getElementById("tracked-count").textContent = "3";
+        log("log2", "Created and tracked: counter, user, items");
+      });
+
+      onClick("#modify-tracked", () => {
+        if (!trackedValues.length) {
+          log("log2", "Create tracked values first!");
+          return;
+        }
+        trackedValues[0].value++;
+        trackedValues[1].age++;
+        trackedValues[2].list.push("Item " + trackedValues[2].list.length);
+        log(
+          "log2",
+          `Modified: counter=${trackedValues[0].value}, age=${trackedValues[1].age}, items=${trackedValues[2].list.length}`,
+        );
+      });
+
+      onClick("#log-tracked", () => {
+        log("log2", "Logging all tracked values to console…");
+        logTrackedReactive();
+      });
+
+      // ── 3. getDebugInfo ───────────────────────────────────────────────────
+      let debugValue = null;
+
+      onClick("#create-debug-value", () => {
+        debugValue = reactive({ count: 0, history: [], lastModified: null });
+        trackReactive(debugValue, "debugValue");
+        log("log3", "Created debugValue with count=0");
+      });
+
+      onClick("#modify-debug-value", () => {
+        if (!debugValue) {
+          log("log3", "Create debug value first!");
+          return;
+        }
+        debugValue.count++;
+        debugValue.history.push(debugValue.count);
+        debugValue.lastModified = new Date().toISOString();
+        log("log3", `Modified: count=${debugValue.count}`);
+      });
+
+      onClick("#get-debug-info", () => {
+        if (!debugValue) {
+          log("log3", "Create debug value first!");
+          return;
+        }
+        const info = getDebugInfo("debugValue");
+        if (info) {
+          log(
+            "log3",
+            `Debug Info: name=${info.name}, value=${JSON.stringify(info.value)}`,
+          );
+          console.log("Full debug info:", info);
+        } else {
+          log("log3", "No debug info found (value may not be tracked)");
+        }
+      });
+
+      // ── 4. clearDebugTracking ─────────────────────────────────────────────
+      onClick("#clear-tracking", () => {
+        clearDebugTracking();
+        document.getElementById("tracking-status").innerHTML =
+          '<div class="stat-row"><span class="stat-label">Status</span><span>All tracking cleared!</span></div>';
+        trackedValues = [];
+        debugValue = null;
+        document.getElementById("tracked-count").textContent = "0";
+      });
+
+      onClick("#check-tracking", () => {
+        logTrackedReactive();
+        document.getElementById("tracking-status").innerHTML =
+          '<div class="stat-row"><span class="stat-label">Status</span><span>Check browser console.</span></div>';
+      });
+
+      // ── 5. Practical Debug Workflow ───────────────────────────────────────
+      let appState = null;
+      let debugSession = false;
+
+      onClick("#start-debug-session", () => {
+        if (debugSession) {
+          log("log5", "Debug session already active!");
+          return;
+        }
+        setDebug(true);
+        refreshDebugStatus();
+        appState = reactive({
+          users: [],
+          selectedUser: null,
+          loading: false,
+          error: null,
+        });
+        trackReactive(appState, "appState");
+        effect(() => {
+          if (isDebugEnabled())
+            console.log("[DEBUG] App state changed:", {
+              users: appState.users.length,
+              loading: appState.loading,
+              error: appState.error,
+            });
+        });
+        debugSession = true;
+        log("log5", "Debug session started! Debug mode: ON, appState tracked");
+      });
+
+      onClick("#simulate-bug", () => {
+        if (!debugSession) {
+          log("log5", "Start debug session first!");
+          return;
+        }
+        log("log5", "Simulating bug scenario…");
+        appState.loading = true;
+        log("log5", "1. Set loading=true");
+        setTimeout(() => {
+          appState.error = "Network timeout";
+          appState.loading = false;
+          log("log5", "2. Error occurred: Network timeout");
+          setTimeout(() => {
+            appState.loading = true;
+            log("log5", "3. Retry: loading=true (bug: error not cleared!)");
+            setTimeout(() => {
+              appState.users = [{ id: 1, name: "User 1" }];
+              appState.loading = false;
+              log(
+                "log5",
+                "4. Success! But error still set (bug!) — use Inspect State",
+              );
+            }, 500);
+          }, 500);
+        }, 500);
+      });
+
+      onClick("#inspect-state", () => {
+        if (!debugSession || !appState) {
+          log("log5", "Start debug session first!");
+          return;
+        }
+        log("log5", "--- State Inspection ---");
+        log(
+          "log5",
+          `Users: ${appState.users.length}, Loading: ${appState.loading}, Error: ${appState.error || "(none)"}`,
+        );
+        if (appState.error && !appState.loading && appState.users.length > 0)
+          log("log5", "BUG DETECTED: Error not cleared after successful load!");
+      });
+
+      onClick("#end-debug-session", () => {
+        if (!debugSession) {
+          log("log5", "No debug session active!");
+          return;
+        }
+        setDebug(false);
+        refreshDebugStatus();
+        clearDebugTracking();
+        appState = null;
+        debugSession = false;
+        log("log5", "Debug session ended. Debug mode: OFF, tracking cleared");
+      });
+    </script>
+  </body>
+</html>

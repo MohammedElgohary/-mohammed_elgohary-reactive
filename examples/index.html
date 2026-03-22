@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reactive · Examples</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .hero {
+        text-align: center;
+        padding: 3rem 1rem 2rem;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.3rem 0.85rem;
+        border-radius: 999px;
+        background: var(--primary-l);
+        color: var(--primary);
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 1.25rem;
+      }
+      .hero h1 {
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        margin-bottom: 1rem;
+      }
+      .hero p {
+        font-size: 1.05rem;
+        color: var(--muted);
+        max-width: 520px;
+        margin: 0 auto 2rem;
+      }
+      .example-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+      .ex-card {
+        display: flex;
+        flex-direction: column;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        padding: 1.5rem;
+        text-decoration: none;
+        color: inherit;
+        transition:
+          border-color var(--t),
+          transform var(--t),
+          box-shadow var(--t);
+      }
+      .ex-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15);
+      }
+      .ex-icon {
+        font-size: 1.75rem;
+        margin-bottom: 0.75rem;
+        line-height: 1;
+      }
+      .ex-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+      }
+      .ex-desc {
+        font-size: 0.82rem;
+        color: var(--muted);
+        flex: 1;
+        line-height: 1.5;
+      }
+      .ex-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-top: 1rem;
+      }
+      .tag {
+        padding: 0.15rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        background: var(--surface-2);
+        color: var(--muted);
+        border: 1px solid var(--border);
+      }
+      .section-heading {
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        margin: 2rem 0 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-top: 2.5rem;
+      }
+      .feature {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r-md);
+        padding: 1.25rem;
+        text-align: center;
+      }
+      .feature-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+      .feature-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+      .feature-desc {
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="index.html" class="active">Home</a>
+        <a href="01-basics/reactive.html">Basics</a>
+        <a href="02-dom-binding/bind-text.html">DOM Binding</a>
+        <a href="03-watch/watch.html">Watch</a>
+        <a href="04-utilities/utilities.html">Utilities</a>
+        <a href="05-real-world/counter.html">Real World</a>
+        <a href="06-integration/full-app.html">Integration</a>
+      </div>
+    </nav>
+
+    <main class="page wide">
+      <div class="hero">
+        <div class="hero-badge">⚡ Vanilla JS · Zero Dependencies</div>
+        <h1>Reactive<br />Examples</h1>
+        <p>
+          Fine-grained reactivity for the DOM — no build step, no framework,
+          just reactive primitives that keep your UI in sync automatically.
+        </p>
+      </div>
+
+      <div class="section-heading">01 — Basics</div>
+      <div class="example-grid">
+        <a class="ex-card" href="01-basics/reactive.html">
+          <div class="ex-icon">⚛️</div>
+          <div class="ex-title">reactive()</div>
+          <div class="ex-desc">
+            Create reactive primitives, objects, and arrays with automatic
+            dependency tracking.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">reactive</span><span class="tag">effect</span>
+          </div>
+        </a>
+        <a class="ex-card" href="01-basics/computed.html">
+          <div class="ex-icon">🧮</div>
+          <div class="ex-title">computed()</div>
+          <div class="ex-desc">
+            Derived values that update automatically when their dependencies
+            change.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">computed</span><span class="tag">chained</span>
+          </div>
+        </a>
+        <a class="ex-card" href="01-basics/effect.html">
+          <div class="ex-icon">⚡</div>
+          <div class="ex-title">effect()</div>
+          <div class="ex-desc">
+            Side effects with automatic dependency tracking and optional
+            cleanup.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">effect</span><span class="tag">cleanup</span>
+          </div>
+        </a>
+        <a class="ex-card" href="01-basics/batch.html">
+          <div class="ex-icon">📦</div>
+          <div class="ex-title">batch()</div>
+          <div class="ex-desc">
+            Group multiple updates into a single notification for better
+            performance.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">batch</span><span class="tag">performance</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="section-heading">02 — DOM Binding</div>
+      <div class="example-grid">
+        <a class="ex-card" href="02-dom-binding/bind-text.html">
+          <div class="ex-icon">📝</div>
+          <div class="ex-title">bindText() & bindHTML()</div>
+          <div class="ex-desc">
+            Bind text and HTML content to reactive values automatically.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">bindText</span><span class="tag">bindHTML</span>
+          </div>
+        </a>
+        <a class="ex-card" href="02-dom-binding/bind-input.html">
+          <div class="ex-icon">🔄</div>
+          <div class="ex-title">
+            bindInput()
+            <span class="badge badge-primary" style="font-size: 0.65rem"
+              >Two-way</span
+            >
+          </div>
+          <div class="ex-desc">
+            Two-way binding for text, number, checkbox, radio, select, and more.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">bindInput</span><span class="tag">two-way</span>
+          </div>
+        </a>
+        <a class="ex-card" href="02-dom-binding/bind-class-style.html">
+          <div class="ex-icon">🎨</div>
+          <div class="ex-title">bindClass() & bindStyle()</div>
+          <div class="ex-desc">
+            Dynamic CSS classes and inline styles driven by reactive state.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">bindClass</span><span class="tag">bindStyle</span>
+          </div>
+        </a>
+        <a class="ex-card" href="multi-style-binding/index.html">
+          <div class="ex-icon">🖌️</div>
+          <div class="ex-title">
+            bindStyles()
+            <span class="badge badge-success" style="font-size: 0.65rem"
+              >New</span
+            >
+          </div>
+          <div class="ex-desc">
+            Bind multiple CSS properties at once with a single call.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">bindStyles</span><span class="tag">multi</span>
+          </div>
+        </a>
+        <a class="ex-card" href="02-dom-binding/bind-advanced.html">
+          <div class="ex-icon">🔗</div>
+          <div class="ex-title">Advanced Binding</div>
+          <div class="ex-desc">
+            bindAttr, bindProp, bindMultiple, and render for complex scenarios.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">bindAttr</span><span class="tag">render</span>
+          </div>
+        </a>
+        <a class="ex-card" href="02-dom-binding/bind-unified.html">
+          <div class="ex-icon">🎯</div>
+          <div class="ex-title">Unified bind()</div>
+          <div class="ex-desc">
+            One function that auto-detects binding type with security built in.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">bind</span><span class="tag">unified</span>
+          </div>
+        </a>
+        <a class="ex-card" href="02-dom-binding/security.html">
+          <div class="ex-icon">🔒</div>
+          <div class="ex-title">
+            Security
+            <span class="badge badge-success" style="font-size: 0.65rem"
+              >New</span
+            >
+          </div>
+          <div class="ex-desc">
+            XSS protection, HTML sanitization, and URL validation built in.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">XSS</span><span class="tag">sanitize</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="section-heading">03 — Watch</div>
+      <div class="example-grid">
+        <a class="ex-card" href="03-watch/watch.html">
+          <div class="ex-icon">👁️</div>
+          <div class="ex-title">watch()</div>
+          <div class="ex-desc">
+            React to value changes with access to both old and new values.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">watch</span><span class="tag">immediate</span>
+          </div>
+        </a>
+        <a class="ex-card" href="03-watch/watch-advanced.html">
+          <div class="ex-icon">🔭</div>
+          <div class="ex-title">
+            Advanced Watch
+            <span class="badge badge-success" style="font-size: 0.65rem"
+              >New</span
+            >
+          </div>
+          <div class="ex-desc">
+            watchMultiple and watchProperty for fine-grained observation.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">watchMultiple</span
+            ><span class="tag">watchProperty</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="section-heading">04 — Utilities</div>
+      <div class="example-grid">
+        <a class="ex-card" href="04-utilities/utilities.html">
+          <div class="ex-icon">🔧</div>
+          <div class="ex-title">
+            Utilities
+            <span class="badge badge-success" style="font-size: 0.65rem"
+              >New</span
+            >
+          </div>
+          <div class="ex-desc">
+            ref, toRaw, markRaw, readonly, shallowReactive and more.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">ref</span><span class="tag">readonly</span
+            ><span class="tag">toRaw</span>
+          </div>
+        </a>
+        <a class="ex-card" href="04-utilities/debug.html">
+          <div class="ex-icon">🐛</div>
+          <div class="ex-title">
+            Debug Tools
+            <span class="badge badge-success" style="font-size: 0.65rem"
+              >New</span
+            >
+          </div>
+          <div class="ex-desc">
+            setDebug, trackReactive, getDebugInfo for development workflows.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">setDebug</span
+            ><span class="tag">trackReactive</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="section-heading">05 — Real World Apps</div>
+      <div class="example-grid">
+        <a class="ex-card" href="05-real-world/counter.html">
+          <div class="ex-icon">🔢</div>
+          <div class="ex-title">Counter</div>
+          <div class="ex-desc">
+            Simple counter with computed values and conditional styling.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">reactive</span><span class="tag">computed</span>
+          </div>
+        </a>
+        <a class="ex-card" href="05-real-world/todo-list.html">
+          <div class="ex-icon">✅</div>
+          <div class="ex-title">
+            Todo List
+            <span class="badge badge-primary" style="font-size: 0.65rem"
+              >Full App</span
+            >
+          </div>
+          <div class="ex-desc">
+            Complete todo app with filters, stats, and reactive arrays.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">render</span><span class="tag">computed</span
+            ><span class="tag">filter</span>
+          </div>
+        </a>
+        <a class="ex-card" href="05-real-world/shopping-cart.html">
+          <div class="ex-icon">🛒</div>
+          <div class="ex-title">
+            Shopping Cart
+            <span class="badge badge-primary" style="font-size: 0.65rem"
+              >Full App</span
+            >
+          </div>
+          <div class="ex-desc">
+            E-commerce cart with promo codes, tax, and computed totals.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">computed</span><span class="tag">batch</span>
+          </div>
+        </a>
+        <a class="ex-card" href="05-real-world/computed-async.html">
+          <div class="ex-icon">⏳</div>
+          <div class="ex-title">
+            Async Computed
+            <span class="badge badge-success" style="font-size: 0.65rem"
+              >New</span
+            >
+          </div>
+          <div class="ex-desc">
+            Async derived values with loading/error states and automatic
+            race-condition protection.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">computedAsync</span><span class="tag">async</span
+            ><span class="tag">race</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="section-heading">06 — Integration</div>
+      <div class="example-grid">
+        <a class="ex-card" href="06-integration/full-app.html">
+          <div class="ex-icon">🧩</div>
+          <div class="ex-title">
+            Full Integration
+            <span class="badge badge-primary" style="font-size: 0.65rem"
+              >All Features</span
+            >
+          </div>
+          <div class="ex-desc">
+            Task manager combining reactive, computed, watch, batch, and all DOM
+            bindings.
+          </div>
+          <div class="ex-tags"><span class="tag">all features</span></div>
+        </a>
+      </div>
+
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-name">Fine-grained</div>
+          <div class="feature-desc">
+            Only exact DOM nodes that depend on changed values re-render.
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🪶</div>
+          <div class="feature-name">~8KB min</div>
+          <div class="feature-desc">
+            Zero dependencies. Works in any modern browser, even file://.
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-name">Secure</div>
+          <div class="feature-desc">
+            XSS protection and HTML sanitization built into DOM bindings.
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔷</div>
+          <div class="feature-name">TypeScript</div>
+          <div class="feature-desc">
+            Fully typed source with generics for reactive values and computed.
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

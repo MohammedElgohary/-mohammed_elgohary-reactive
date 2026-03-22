@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Counter · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+      .counter-display {
+        font-size: 5rem;
+        font-weight: 700;
+        text-align: center;
+        color: var(--primary);
+        line-height: 1;
+        padding: 1.5rem 0;
+        letter-spacing: -2px;
+      }
+      .counter-status {
+        text-align: center;
+        padding: 0.6rem 1.2rem;
+        border-radius: var(--r-sm);
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin-top: 0.75rem;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="counter.html" class="active">Counter</a>
+        <a href="todo-list.html">Todo List</a>
+        <a href="shopping-cart.html">Shopping Cart</a>
+        <a href="computed-async.html">Async Computed</a>
+      </div>
+    </nav>
+    <main class="page" style="max-width: 520px">
+      <header class="page-header">
+        <h1>Reactive Counter</h1>
+        <p class="page-subtitle">
+          bindText, bindStyle, and bindHTML working together.
+        </p>
+      </header>
+
+      <div class="card">
+        <div class="section">
+          <div class="counter-display" id="counter">0</div>
+          <div class="btn-group" style="justify-content: center">
+            <button class="btn btn-danger" id="dec">− 1</button>
+            <button class="btn btn-secondary" id="reset">Reset</button>
+            <button class="btn btn-primary" id="inc">+ 1</button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">Doubled</span>
+              <span id="doubled">0</span>
+            </div>
+          </div>
+          <div class="counter-status" id="status"></div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const { reactive, computed, bindText, bindStyle, bindHTML, onClick } =
+        Reactive;
+
+      const state = reactive({ count: 0 });
+      const doubled = computed(() => state.count * 2);
+
+      bindText("#counter", () => state.count);
+      bindText("#doubled", () => doubled.value);
+
+      bindHTML("#status", () => {
+        if (state.count === 0) return "Zero";
+        if (state.count > 0) return `Positive (+${state.count})`;
+        return `Negative (${state.count})`;
+      });
+
+      bindStyle("#status", "background", () => {
+        if (state.count === 0) return "var(--surface-2)";
+        if (state.count > 0) return "rgba(16,185,129,0.15)";
+        return "rgba(239,68,68,0.15)";
+      });
+
+      bindStyle("#status", "color", () => {
+        if (state.count === 0) return "var(--muted)";
+        if (state.count > 0) return "var(--success)";
+        return "var(--danger)";
+      });
+
+      onClick("#inc", () => state.count++);
+      onClick("#dec", () => state.count--);
+      onClick("#reset", () => (state.count = 0));
+    </script>
+  </body>
+</html>

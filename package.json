@@ -1,0 +1,85 @@
+{
+  "name": "reactive",
+  "version": "1.0.0",
+  "description": "A lightweight, framework-agnostic reactive state management system for vanilla JavaScript",
+  "type": "module",
+  "main": "./dist/reactive.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "module": "./dist/reactive.js",
+  "types": "./dist/reactive.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/reactive.d.ts",
+      "import": "./dist/reactive.js",
+      "default": "./dist/reactive.js"
+    },
+    "./min": {
+      "types": "./dist/reactive.d.ts",
+      "import": "./dist/reactive.min.js",
+      "default": "./dist/reactive.min.js"
+    },
+    "./minimal": {
+      "types": "./dist/reactive.minimal.d.ts",
+      "import": "./dist/reactive.minimal.js",
+      "default": "./dist/reactive.minimal.js"
+    },
+    "./minimal/browser": {
+      "types": "./dist/reactive.minimal.d.ts",
+      "default": "./dist/reactive.minimal.iife.js"
+    },
+    "./browser": {
+      "types": "./dist/reactive.d.ts",
+      "default": "./dist/reactive.iife.min.js"
+    },
+    "./iife": {
+      "types": "./dist/reactive.d.ts",
+      "default": "./dist/reactive.iife.min.js"
+    },
+    "./dist/*": "./dist/*"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node --experimental-strip-types scripts/build.ts",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run test:run && npm run build"
+  },
+  "keywords": [
+    "reactive",
+    "state-management",
+    "vanilla-js",
+    "reactivity",
+    "store",
+    "signals",
+    "computed",
+    "effect",
+    "dom-binding",
+    "lightweight",
+    "framework-agnostic",
+    "typescript"
+  ],
+  "author": "SAMARA",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "sideEffects": false,
+  "devDependencies": {
+    "@vitest/coverage-v8": "^1.0.0",
+    "@vitest/ui": "^1.0.0",
+    "jsdom": "^23.0.0",
+    "terser": "^5.44.1",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0",
+    "vite-plugin-dts": "^3.9.1",
+    "vitest": "^1.0.0"
+  }
+}

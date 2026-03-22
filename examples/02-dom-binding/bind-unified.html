@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unified bind() · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="bind-text.html">bindText()</a>
+        <a href="bind-input.html">bindInput()</a>
+        <a href="bind-class-style.html">bindClass/Style()</a>
+        <a href="bind-advanced.html">Advanced</a>
+        <a href="bind-unified.html" class="active">bind()</a>
+        <a href="security.html">Security</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <header class="page-header">
+        <h1>Unified bind()</h1>
+        <p class="page-subtitle">
+          One function for every binding type — auto-detects text vs HTML,
+          supports prefix syntax for class, style, and attributes.
+        </p>
+      </header>
+
+      <!-- Why bind() -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">Why bind()?</div>
+          <div class="section-desc">
+            Instead of importing and calling a different function for each
+            binding type, <code>bind()</code> handles everything through a
+            consistent interface.
+          </div>
+          <div
+            class="output-box"
+            style="font-family: monospace; font-size: 0.85rem; line-height: 2"
+          >
+            <div style="opacity: 0.5">// Specific functions</div>
+            <div>bindText('#title', () =&gt; state.title);</div>
+            <div>bindAttr('#link', 'href', () =&gt; state.url);</div>
+            <div>bindClass('#btn', 'active', () =&gt; state.on);</div>
+            <div>bindStyle('#box', 'color', () =&gt; state.color);</div>
+            <br />
+            <div style="opacity: 0.5">// Unified — same result</div>
+            <div>bind('#title', () =&gt; state.title);</div>
+            <div>bind('#link', 'href', () =&gt; state.url);</div>
+            <div>bind('#btn', 'class:active', () =&gt; state.on);</div>
+            <div>bind('#box', 'style:color', () =&gt; state.color);</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1. Auto-detection -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">1. Auto-detection — text vs HTML</div>
+          <div class="section-desc">
+            Without a second argument, <code>bind()</code> sets
+            <code>textContent</code>. Pass <code>{ trusted: true }</code> to
+            render HTML from developer-controlled templates.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="btn-text">Bind Text</button>
+            <button class="btn btn-secondary" id="btn-html-safe">
+              Bind HTML (sanitized)
+            </button>
+            <button class="btn btn-secondary" id="btn-html-trusted">
+              Bind Trusted HTML
+            </button>
+          </div>
+          <div
+            class="output-box mt-sm"
+            id="auto-output"
+            style="min-height: 2rem"
+          ></div>
+        </div>
+      </div>
+
+      <!-- 2. Attribute binding -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">2. Attribute binding</div>
+          <div class="section-desc">
+            Pass the attribute name as the second argument — URL validation and
+            dangerous-attribute blocking apply automatically.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="btn-href">Cycle Link</button>
+            <button class="btn btn-secondary" id="btn-title">
+              Cycle Tooltip
+            </button>
+            <button class="btn btn-secondary" id="btn-disabled">
+              Toggle Disabled
+            </button>
+          </div>
+          <div
+            class="output-box"
+            style="display: flex; flex-direction: column; gap: 0.75rem"
+          >
+            <a
+              id="attr-link"
+              href="https://example.com"
+              target="_blank"
+              class="btn btn-secondary"
+              style="display: inline-block; text-decoration: none"
+              >Demo Link</a
+            >
+            <button id="attr-btn" title="Click me!" class="btn btn-secondary">
+              Hover for tooltip
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Class & style prefix -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">3. Class &amp; style prefix syntax</div>
+          <div class="section-desc">
+            Use <code>class:name</code> for boolean class toggles and
+            <code>style:property</code> for inline styles.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="btn-active">
+              Toggle Active
+            </button>
+            <button class="btn btn-secondary" id="btn-color">
+              Cycle Color
+            </button>
+            <button class="btn btn-secondary" id="btn-scale">
+              Toggle Scale
+            </button>
+          </div>
+          <div
+            class="output-box"
+            style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 120px;
+            "
+          >
+            <div
+              id="demo-box"
+              style="
+                width: 100px;
+                height: 100px;
+                border: 2px solid var(--border);
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s;
+                font-weight: 600;
+              "
+            >
+              Box
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Security -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">4. Security — trusted vs untrusted</div>
+          <div class="section-desc">
+            User input is always sanitized. Use
+            <code>{ trusted: true }</code> only for templates you control —
+            never for user-provided content.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-danger" id="btn-user-input">
+              Simulate User Input
+            </button>
+            <button class="btn btn-primary" id="btn-dev-template">
+              Dev Template
+            </button>
+          </div>
+          <div
+            class="output-box mt-sm"
+            id="security-output"
+            style="min-height: 2rem"
+          ></div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const { reactive, bind, configureReactiveSecurity, onClick } = Reactive;
+
+      configureReactiveSecurity({ logWarnings: true });
+
+      // 1. Auto-detection
+      const content = reactive({
+        text: "Hello, World!",
+        html: "<b>Bold</b> &amp; <em>italic</em>",
+      });
+
+      onClick("#btn-text", () => bind("#auto-output", () => content.text));
+      onClick("#btn-html-safe", () =>
+        bind("#auto-output", () => '<b>Safe</b><script>alert("xss")<\/script>'),
+      );
+      onClick("#btn-html-trusted", () =>
+        bind("#auto-output", () => content.html, { trusted: true }),
+      );
+
+      // 2. Attribute binding
+      const URLS = [
+        "https://example.com",
+        "https://github.com",
+        "https://developer.mozilla.org",
+      ];
+      const TIPS = [
+        "Click me!",
+        "I am a button",
+        "Dynamic tooltip",
+        "Reactive!",
+      ];
+      const attrSt = reactive({ urlIdx: 0, tipIdx: 0, disabled: false });
+
+      bind("#attr-link", "href", () => URLS[attrSt.urlIdx]);
+      bind("#attr-btn", "title", () => TIPS[attrSt.tipIdx]);
+      bind("#attr-btn", "disabled", () => attrSt.disabled || null);
+
+      onClick(
+        "#btn-href",
+        () => (attrSt.urlIdx = (attrSt.urlIdx + 1) % URLS.length),
+      );
+      onClick(
+        "#btn-title",
+        () => (attrSt.tipIdx = (attrSt.tipIdx + 1) % TIPS.length),
+      );
+      onClick("#btn-disabled", () => (attrSt.disabled = !attrSt.disabled));
+
+      // 3. Class & style prefix
+      const COLORS = ["#6366f1", "#22c55e", "#ef4444", "#f59e0b"];
+      const boxSt = reactive({ active: false, colorIdx: 0, scaled: false });
+
+      bind("#demo-box", "class:active", () => boxSt.active);
+      bind("#demo-box", "style:background-color", () =>
+        boxSt.active ? COLORS[boxSt.colorIdx] : "transparent",
+      );
+      bind("#demo-box", "style:color", () =>
+        boxSt.active ? "#fff" : "var(--text)",
+      );
+      bind("#demo-box", "style:transform", () =>
+        boxSt.scaled ? "scale(1.15)" : "scale(1)",
+      );
+
+      onClick("#btn-active", () => (boxSt.active = !boxSt.active));
+      onClick(
+        "#btn-color",
+        () => (boxSt.colorIdx = (boxSt.colorIdx + 1) % COLORS.length),
+      );
+      onClick("#btn-scale", () => (boxSt.scaled = !boxSt.scaled));
+
+      // 4. Security
+      onClick("#btn-user-input", () => {
+        const malicious = "<img src=x onerror=\"alert('XSS')\">";
+        bind("#security-output", () => `User said: ${malicious}`);
+      });
+      onClick("#btn-dev-template", () => {
+        bind(
+          "#security-output",
+          () =>
+            '<div style="color:var(--success)"><b>✅ Trusted developer template</b> — rendered as-is.</div>',
+          { trusted: true },
+        );
+      });
+
+      // Active class style
+      const s = document.createElement("style");
+      s.textContent =
+        "#demo-box.active { box-shadow: 0 0 12px var(--primary-l); }";
+      document.head.appendChild(s);
+    </script>
+  </body>
+</html>

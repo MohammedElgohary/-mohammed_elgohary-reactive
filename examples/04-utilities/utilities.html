@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Utilities · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="utilities.html" class="active">Utilities</a>
+        <a href="debug.html">Debug</a>
+      </div>
+    </nav>
+    <main class="page">
+      <header class="page-header">
+        <h1>Utilities</h1>
+        <p class="page-subtitle">
+          ref, toRaw, markRaw, readonly, shallowReactive and more.
+        </p>
+      </header>
+
+      <div class="card">
+        <!-- 1. ref() -->
+        <div class="section">
+          <div class="section-title">1. ref()</div>
+          <div class="section-desc">
+            Shorthand for reactive() with primitives. Both work the same way.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="inc-ref">Increment ref</button>
+            <button class="btn btn-secondary" id="inc-reactive">
+              Increment reactive
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">ref value</span
+              ><span id="ref-value">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">reactive value</span
+              ><span id="reactive-value">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. toRaw() -->
+        <div class="section">
+          <div class="section-title">2. toRaw()</div>
+          <div class="section-desc">
+            Returns the original non-reactive object. Useful when passing data
+            to external libraries.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="modify-reactive">
+              Modify Reactive
+            </button>
+            <button class="btn btn-secondary" id="get-raw">
+              Get Raw Object
+            </button>
+            <button class="btn btn-secondary" id="modify-raw">
+              Modify Raw (No Reactivity)
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">Reactive user</span
+              ><span id="reactive-user"></span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Raw user</span
+              ><span id="raw-user"></span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Same reference?</span
+              ><span id="equality"></span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log2"></div>
+        </div>
+
+        <!-- 3. markRaw() & isRaw() -->
+        <div class="section">
+          <div class="section-title">3. markRaw() &amp; isRaw()</div>
+          <div class="section-desc">
+            markRaw() marks an object to never be made reactive. isRaw() checks
+            if marked.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="add-normal">
+              Add Normal Object
+            </button>
+            <button class="btn btn-secondary" id="add-raw-obj">
+              Add Raw Object
+            </button>
+            <button class="btn btn-secondary" id="modify-nested">
+              Modify Nested Objects
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">Container items</span
+              ><span id="container-items">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Normal object reactive?</span
+              ><span id="normal-reactive">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Raw object reactive?</span
+              ><span id="raw-reactive">—</span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log3"></div>
+        </div>
+
+        <!-- 4. readonly() & readonlyObject() -->
+        <div class="section">
+          <div class="section-title">4. readonly() &amp; readonlyObject()</div>
+          <div class="section-desc">
+            Wrap reactive values to prevent modification. Attempts to modify are
+            silently ignored.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="modify-original">
+              Modify Original
+            </button>
+            <button class="btn btn-danger" id="try-modify-readonly">
+              Try Modify Readonly
+            </button>
+            <button class="btn btn-primary" id="modify-original-obj">
+              Modify Original Object
+            </button>
+            <button class="btn btn-danger" id="try-modify-readonly-obj">
+              Try Modify Readonly Object
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">Original count</span
+              ><span id="original-count">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Readonly count</span
+              ><span id="readonly-count">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Original user</span
+              ><span id="original-user"></span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Readonly user</span
+              ><span id="readonly-user"></span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log4"></div>
+        </div>
+
+        <!-- 5. shallowReactive() -->
+        <div class="section">
+          <div class="section-title">5. shallowReactive()</div>
+          <div class="section-desc">
+            Only makes top-level properties reactive. Nested objects are NOT
+            reactive.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="modify-shallow-top">
+              Modify Top Level
+            </button>
+            <button class="btn btn-danger" id="modify-shallow-nested">
+              Modify Nested (No Effect)
+            </button>
+            <button class="btn btn-secondary" id="replace-nested">
+              Replace Nested Object
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">Shallow state</span
+              ><span id="shallow-state"></span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log5"></div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const {
+        reactive,
+        ref,
+        toRaw,
+        markRaw,
+        isRaw,
+        readonly,
+        readonlyObject,
+        shallowReactive,
+        effect,
+        bindText,
+        onClick,
+      } = Reactive;
+
+      function log(id, message) {
+        const el = document.getElementById(id);
+        const time = new Date().toLocaleTimeString();
+        el.innerHTML = `[${time}] ${message}\n` + el.innerHTML;
+      }
+
+      // ── 1. ref() ──────────────────────────────────────────────────────────
+      const refVal = ref(0);
+      const reactiveVal = reactive(0);
+
+      bindText("#ref-value", () => refVal.value);
+      bindText("#reactive-value", () => reactiveVal.value);
+
+      onClick("#inc-ref", () => refVal.value++);
+      onClick("#inc-reactive", () => reactiveVal.value++);
+
+      // ── 2. toRaw() ────────────────────────────────────────────────────────
+      const reactiveUser = reactive({ name: "John", age: 25 });
+      let rawUser = null;
+
+      bindText("#reactive-user", () =>
+        JSON.stringify({ name: reactiveUser.name, age: reactiveUser.age }),
+      );
+
+      onClick("#modify-reactive", () => {
+        reactiveUser.age++;
+        log(
+          "log2",
+          `Effect ran: ${reactiveUser.name}, age=${reactiveUser.age}`,
+        );
+      });
+
+      onClick("#get-raw", () => {
+        rawUser = toRaw(reactiveUser);
+        document.getElementById("raw-user").textContent =
+          JSON.stringify(rawUser);
+        document.getElementById("equality").textContent =
+          rawUser === toRaw(reactiveUser) ? "Yes (same reference)" : "No";
+        log("log2", "Got raw object");
+      });
+
+      onClick("#modify-raw", () => {
+        if (!rawUser) {
+          log("log2", 'Click "Get Raw Object" first');
+          return;
+        }
+        rawUser.age++;
+        document.getElementById("raw-user").textContent =
+          JSON.stringify(rawUser);
+        log("log2", "Modified raw — no effect triggered!");
+      });
+
+      // ── 3. markRaw() & isRaw() ────────────────────────────────────────────
+      const container = reactive({ items: [] });
+      let normalObj = null,
+        rawObj = null;
+
+      bindText("#container-items", () => container.items.length);
+
+      onClick("#add-normal", () => {
+        normalObj = { type: "normal", data: { value: 1 } };
+        container.items.push(normalObj);
+        document.getElementById("normal-reactive").textContent = isRaw(
+          normalObj,
+        )
+          ? "No (marked raw)"
+          : "Yes (will be reactive)";
+        log("log3", `Container has ${container.items.length} items`);
+      });
+
+      onClick("#add-raw-obj", () => {
+        rawObj = markRaw({ type: "raw", data: { value: 1 } });
+        container.items.push(rawObj);
+        document.getElementById("raw-reactive").textContent = isRaw(rawObj)
+          ? "No (marked raw)"
+          : "Yes (will be reactive)";
+        log("log3", `isRaw(rawObj) = ${isRaw(rawObj)}`);
+      });
+
+      onClick("#modify-nested", () => {
+        if (normalObj) {
+          normalObj.data.value++;
+          log("log3", `Modified normal nested: ${normalObj.data.value}`);
+        }
+        if (rawObj) {
+          rawObj.data.value++;
+          log(
+            "log3",
+            `Modified raw nested: ${rawObj.data.value} (no reactivity)`,
+          );
+        }
+      });
+
+      // ── 4. readonly() & readonlyObject() ─────────────────────────────────
+      const origCount = reactive(0);
+      const roCount = readonly(origCount);
+      const origUser = reactive({ name: "John", age: 25 });
+      const roUser = readonlyObject(origUser);
+
+      bindText("#original-count", () => origCount.value);
+      bindText("#readonly-count", () => roCount.value);
+      bindText("#original-user", () =>
+        JSON.stringify({ name: origUser.name, age: origUser.age }),
+      );
+      bindText("#readonly-user", () =>
+        JSON.stringify({ name: roUser.name, age: roUser.age }),
+      );
+
+      onClick("#modify-original", () => {
+        origCount.value++;
+        log("log4", `Original count: ${origCount.value}`);
+      });
+
+      onClick("#try-modify-readonly", () => {
+        try {
+          roCount.value++;
+        } catch (e) {
+          log("log4", `Error: ${e.message}`);
+          return;
+        }
+        log("log4", "Readonly modification silently ignored");
+      });
+
+      onClick("#modify-original-obj", () => {
+        origUser.age++;
+        log("log4", `Original user age: ${origUser.age}`);
+      });
+
+      onClick("#try-modify-readonly-obj", () => {
+        try {
+          roUser.age++;
+        } catch (e) {
+          log("log4", `Error: ${e.message}`);
+          return;
+        }
+        log("log4", "Readonly user modification silently ignored");
+      });
+
+      // ── 5. shallowReactive() ──────────────────────────────────────────────
+      const shallow = shallowReactive({ count: 0, nested: { value: 10 } });
+      let effectCount = 0;
+
+      effect(() => {
+        effectCount++;
+        document.getElementById("shallow-state").textContent = JSON.stringify({
+          count: shallow.count,
+          nested: shallow.nested,
+        });
+        log("log5", `Effect #${effectCount}: count=${shallow.count}`);
+      });
+
+      onClick("#modify-shallow-top", () => shallow.count++);
+      onClick("#modify-shallow-nested", () => {
+        shallow.nested.value++;
+        log("log5", `Nested modified to ${shallow.nested.value} — no effect!`);
+        // manual refresh since nested change doesn't trigger reactivity
+        document.getElementById("shallow-state").textContent = JSON.stringify({
+          count: shallow.count,
+          nested: shallow.nested,
+        });
+      });
+      onClick(
+        "#replace-nested",
+        () => (shallow.nested = { value: shallow.nested.value + 100 }),
+      );
+    </script>
+  </body>
+</html>

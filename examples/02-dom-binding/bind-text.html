@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bindText() · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+      .big-num {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary);
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="bind-text.html" class="active">bindText()</a>
+        <a href="bind-input.html">bindInput()</a>
+        <a href="bind-class-style.html">bindClass/Style()</a>
+        <a href="bind-advanced.html">Advanced</a>
+        <a href="bind-unified.html">bind()</a>
+        <a href="security.html">Security</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <header class="page-header">
+        <h1>bindText()</h1>
+        <p class="page-subtitle">
+          Keep an element's text content in sync with reactive state — pass a
+          value directly or a function for computed text.
+        </p>
+      </header>
+
+      <div class="card">
+        <!-- 1. Direct binding -->
+        <div class="section">
+          <div class="section-title">1. Direct value binding</div>
+          <div class="section-desc">
+            Pass a reactive value or a getter function — the element updates
+            automatically on every change.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="inc">Increment</button>
+            <button class="btn btn-secondary" id="dec">Decrement</button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">counter</span>
+              <span id="out-counter" class="big-num">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Computed text -->
+        <div class="section">
+          <div class="section-title">2. Computed text</div>
+          <div class="section-desc">
+            Pass a function to derive the displayed text from one or more
+            reactive values.
+          </div>
+          <div class="btn-group">
+            <input
+              class="input"
+              type="text"
+              id="name-input"
+              placeholder="Enter your name"
+            />
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">greeting</span>
+              <span id="out-greeting">Hello, Guest!</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Multiple bindings -->
+        <div class="section">
+          <div class="section-title">3. Multiple bindings from one state</div>
+          <div class="section-desc">
+            Bind several elements to different slices of the same reactive
+            object — each updates independently.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="randomize">Randomize</button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">first</span
+              ><span id="out-first">John</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">last</span><span id="out-last">Doe</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">age</span><span id="out-age">25</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">full</span
+              ><span id="out-full">John Doe (25)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Formatted output -->
+        <div class="section">
+          <div class="section-title">4. Formatted output</div>
+          <div class="section-desc">
+            Format numbers, dates, and plurals inside the getter — the binding
+            handles the rest.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="add-money">Add $100</button>
+            <button class="btn btn-secondary" id="update-date">
+              Update Date
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">balance</span
+              ><span id="out-balance">$0.00</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">updated</span
+              ><span id="out-date">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">transactions</span
+              ><span id="out-items">0 items</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const { reactive, bindText, bindInput, onClick, onInput } = Reactive;
+
+      // 1. Direct binding
+      const counter = reactive({ value: 0 });
+      bindText("#out-counter", () => counter.value);
+      onClick("#inc", () => counter.value++);
+      onClick("#dec", () => counter.value--);
+
+      // 2. Computed text
+      const name = reactive({ value: "" });
+      bindText("#out-greeting", () =>
+        name.value ? `Hello, ${name.value}!` : "Hello, Guest!",
+      );
+      bindInput("#name-input", name);
+
+      // 3. Multiple bindings
+      const FIRSTS = ["John", "Jane", "Bob", "Alice", "Charlie"];
+      const LASTS = ["Doe", "Smith", "Johnson", "Williams", "Brown"];
+      const person = reactive({ first: "John", last: "Doe", age: 25 });
+
+      bindText("#out-first", () => person.first);
+      bindText("#out-last", () => person.last);
+      bindText("#out-age", () => person.age);
+      bindText(
+        "#out-full",
+        () => `${person.first} ${person.last} (${person.age})`,
+      );
+
+      onClick("#randomize", () => {
+        person.first = FIRSTS[Math.floor(Math.random() * FIRSTS.length)];
+        person.last = LASTS[Math.floor(Math.random() * LASTS.length)];
+        person.age = Math.floor(Math.random() * 50) + 18;
+      });
+
+      // 4. Formatted output
+      const fmt = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      });
+      const dtf = new Intl.DateTimeFormat("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+
+      const ledger = reactive({ balance: 0, ts: 0, count: 0 });
+
+      bindText("#out-balance", () => fmt.format(ledger.balance));
+      bindText("#out-date", () =>
+        ledger.ts ? dtf.format(new Date(ledger.ts)) : "—",
+      );
+      bindText("#out-items", () =>
+        ledger.count === 1 ? "1 item" : `${ledger.count} items`,
+      );
+
+      onClick("#add-money", () => {
+        ledger.balance += 100;
+        ledger.count++;
+        ledger.ts = Date.now();
+      });
+      onClick("#update-date", () => (ledger.ts = Date.now()));
+    </script>
+  </body>
+</html>

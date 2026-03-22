@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Binding · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="bind-text.html">bindText()</a>
+        <a href="bind-input.html">bindInput()</a>
+        <a href="bind-class-style.html">bindClass/Style()</a>
+        <a href="bind-advanced.html" class="active">Advanced</a>
+        <a href="bind-unified.html">bind()</a>
+        <a href="security.html">Security</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <header class="page-header">
+        <h1>Advanced DOM Binding</h1>
+        <p class="page-subtitle">
+          <code>bindAttr()</code>, <code>bindProp()</code>,
+          <code>bindStyles()</code>, <code>bindMultiple()</code>, and
+          <code>render()</code> for complex scenarios.
+        </p>
+      </header>
+
+      <!-- bindAttr -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">1. bindAttr() — HTML attributes</div>
+          <div class="section-desc">
+            Bind any HTML attribute reactively. Dangerous attributes
+            (<code>on*</code>) and unsafe URLs are blocked automatically.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="toggle-disabled">
+              Toggle Disabled
+            </button>
+            <button class="btn btn-secondary" id="cycle-href">
+              Cycle Link
+            </button>
+            <button class="btn btn-secondary" id="cycle-title">
+              Cycle Title
+            </button>
+          </div>
+          <div
+            class="output-box"
+            style="display: flex; flex-direction: column; gap: 0.75rem"
+          >
+            <input
+              type="text"
+              id="demo-input"
+              class="input"
+              placeholder="Disabled when toggled…"
+            />
+            <a
+              id="demo-link"
+              href="https://example.com"
+              target="_blank"
+              class="btn btn-secondary"
+              style="display: inline-block; text-decoration: none"
+              >Visit Link</a
+            >
+            <span id="demo-title" title="Hover me!" style="cursor: help"
+              >🔍 Hover to see title</span
+            >
+          </div>
+          <div
+            class="output-box mt-sm"
+            style="font-family: monospace; font-size: 0.85rem"
+          >
+            <div>disabled: <span id="out-disabled">false</span></div>
+            <div>href: <span id="out-href">https://example.com</span></div>
+            <div>title: <span id="out-title">Hover me!</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- bindProp -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">2. bindProp() — DOM properties</div>
+          <div class="section-desc">
+            Bind DOM properties (not attributes) — useful for
+            <code>value</code>, <code>checked</code>,
+            <code>selectedIndex</code>. Dangerous properties like
+            <code>innerHTML</code> are blocked.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="set-value">Set Value</button>
+            <button class="btn btn-secondary" id="toggle-checked">
+              Toggle Checked
+            </button>
+            <button class="btn btn-secondary" id="next-option">
+              Next Option
+            </button>
+          </div>
+          <div
+            class="output-box"
+            style="display: flex; flex-direction: column; gap: 0.75rem"
+          >
+            <input
+              type="text"
+              id="prop-input"
+              class="input"
+              placeholder="Controlled via bindProp"
+            />
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                cursor: pointer;
+              "
+            >
+              <input type="checkbox" id="prop-checkbox" /> Checkbox (controlled)
+            </label>
+            <select id="prop-select" class="input" style="width: auto">
+              <option>Option A</option>
+              <option>Option B</option>
+              <option>Option C</option>
+              <option>Option D</option>
+            </select>
+          </div>
+          <div
+            class="output-box mt-sm"
+            style="font-family: monospace; font-size: 0.85rem"
+          >
+            <div>value: <span id="out-prop-val">(empty)</span></div>
+            <div>checked: <span id="out-prop-chk">false</span></div>
+            <div>selectedIndex: <span id="out-prop-sel">0</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- bindStyles -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">
+            3. bindStyles() — multiple styles at once
+          </div>
+          <div class="section-desc">
+            Pass a record of style properties to bind them all in a single call
+            — cleaner than multiple <code>bindStyle()</code> calls.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="toggle-highlight">
+              Toggle Highlight
+            </button>
+            <button class="btn btn-secondary" id="cycle-font">
+              Cycle Font Size
+            </button>
+            <button class="btn btn-secondary" id="cycle-weight">
+              Cycle Weight
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <p
+              id="styled-text"
+              style="
+                transition: all 0.3s;
+                padding: 0.5rem;
+                border-radius: var(--r-sm);
+              "
+            >
+              This paragraph has multiple reactive styles applied via
+              <code>bindStyles()</code>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- bindMultiple -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">
+            4. bindMultiple() — mixed bindings in one call
+          </div>
+          <div class="section-desc">
+            Apply text, class, style, and attribute bindings to multiple
+            elements in a single declarative array.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="toggle-card">
+              Toggle Active
+            </button>
+            <button class="btn btn-secondary" id="cycle-color">
+              Cycle Color
+            </button>
+            <button class="btn btn-secondary" id="toggle-scale">
+              Toggle Scale
+            </button>
+          </div>
+          <div
+            class="output-box"
+            style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 120px;
+            "
+          >
+            <div
+              id="multi-card"
+              style="
+                padding: 2rem;
+                border-radius: 8px;
+                text-align: center;
+                transition: all 0.3s;
+                border: 2px solid var(--border);
+              "
+            >
+              <div
+                id="card-title"
+                style="font-weight: 700; margin-bottom: 0.25rem"
+              >
+                Card Title
+              </div>
+              <div id="card-sub" style="font-size: 0.85rem; opacity: 0.7">
+                bindMultiple() demo
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- render -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">5. render() — dynamic HTML lists</div>
+          <div class="section-desc">
+            Render a reactive list as HTML. User-provided text is escaped; the
+            template itself is trusted.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="add-user">Add User</button>
+            <button class="btn btn-danger" id="remove-user">Remove Last</button>
+            <button class="btn btn-secondary" id="toggle-first-status">
+              Toggle First
+            </button>
+            <button class="btn btn-secondary" id="sort-users">Sort A–Z</button>
+          </div>
+          <div class="output-box">
+            <div
+              id="user-count"
+              style="margin-bottom: 0.75rem; font-weight: 600"
+            ></div>
+            <ul
+              id="user-list"
+              style="list-style: none; padding: 0; margin: 0"
+            ></ul>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const {
+        reactive,
+        computed,
+        bindText,
+        bindAttr,
+        bindProp,
+        bindStyles,
+        bindClass,
+        bindStyle,
+        bindMultiple,
+        render,
+        escapeHtmlEntities,
+        onClick,
+      } = Reactive;
+
+      // 1. bindAttr
+      const URLS = [
+        "https://example.com",
+        "https://github.com",
+        "https://developer.mozilla.org",
+      ];
+      const TITLES = [
+        "Hover me!",
+        "Dynamic tooltip",
+        "Reactive binding!",
+        "It works!",
+      ];
+      const attr = reactive({
+        disabled: false,
+        href: URLS[0],
+        title: TITLES[0],
+      });
+
+      bindAttr("#demo-input", "disabled", () => attr.disabled || null);
+      bindAttr("#demo-link", "href", () => attr.href);
+      bindAttr("#demo-title", "title", () => attr.title);
+
+      bindText("#out-disabled", () => String(attr.disabled));
+      bindText("#out-href", () => attr.href);
+      bindText("#out-title", () => attr.title);
+
+      onClick("#toggle-disabled", () => (attr.disabled = !attr.disabled));
+      onClick(
+        "#cycle-href",
+        () => (attr.href = URLS[(URLS.indexOf(attr.href) + 1) % URLS.length]),
+      );
+      onClick(
+        "#cycle-title",
+        () =>
+          (attr.title =
+            TITLES[(TITLES.indexOf(attr.title) + 1) % TITLES.length]),
+      );
+
+      // 2. bindProp
+      const PHRASES = ["Hello World", "Reactive", "DOM Binding", "JavaScript"];
+      const prop = reactive({ val: "", checked: false, idx: 0 });
+
+      bindProp("#prop-input", "value", () => prop.val);
+      bindProp("#prop-checkbox", "checked", () => prop.checked);
+      bindProp("#prop-select", "selectedIndex", () => prop.idx);
+
+      bindText("#out-prop-val", () => prop.val || "(empty)");
+      bindText("#out-prop-chk", () => String(prop.checked));
+      bindText("#out-prop-sel", () => prop.idx);
+
+      onClick(
+        "#set-value",
+        () => (prop.val = PHRASES[Math.floor(Math.random() * PHRASES.length)]),
+      );
+      onClick("#toggle-checked", () => (prop.checked = !prop.checked));
+      onClick("#next-option", () => (prop.idx = (prop.idx + 1) % 4));
+
+      // 3. bindStyles
+      const SIZES = ["0.9rem", "1.1rem", "1.4rem", "1.8rem"];
+      const WEIGHTS = ["400", "600", "700", "900"];
+      const styl = reactive({ highlight: false, sizeIdx: 0, weightIdx: 0 });
+
+      bindStyles("#styled-text", {
+        "background-color": () =>
+          styl.highlight ? "var(--primary-l)" : "transparent",
+        color: () => (styl.highlight ? "var(--primary)" : "var(--text)"),
+        "font-size": () => SIZES[styl.sizeIdx],
+        "font-weight": () => WEIGHTS[styl.weightIdx],
+      });
+
+      onClick("#toggle-highlight", () => (styl.highlight = !styl.highlight));
+      onClick(
+        "#cycle-font",
+        () => (styl.sizeIdx = (styl.sizeIdx + 1) % SIZES.length),
+      );
+      onClick(
+        "#cycle-weight",
+        () => (styl.weightIdx = (styl.weightIdx + 1) % WEIGHTS.length),
+      );
+
+      // 4. bindMultiple
+      const COLORS = ["#6366f1", "#22c55e", "#ef4444", "#f59e0b", "#06b6d4"];
+      const card = reactive({ active: false, colorIdx: 0, scaled: false });
+
+      bindMultiple([
+        {
+          selector: "#multi-card",
+          type: "class",
+          target: "active",
+          source: () => card.active,
+        },
+        {
+          selector: "#multi-card",
+          type: "style",
+          target: "background-color",
+          source: () =>
+            card.active ? COLORS[card.colorIdx] : "var(--surface-2)",
+        },
+        {
+          selector: "#multi-card",
+          type: "style",
+          target: "color",
+          source: () => (card.active ? "#fff" : "var(--text)"),
+        },
+        {
+          selector: "#multi-card",
+          type: "style",
+          target: "transform",
+          source: () => (card.scaled ? "scale(1.08)" : "scale(1)"),
+        },
+        {
+          selector: "#multi-card",
+          type: "style",
+          target: "border-color",
+          source: () => (card.active ? COLORS[card.colorIdx] : "var(--border)"),
+        },
+        {
+          selector: "#card-title",
+          type: "text",
+          target: "",
+          source: () => (card.active ? "Active Card" : "Card Title"),
+        },
+      ]);
+
+      onClick("#toggle-card", () => (card.active = !card.active));
+      onClick(
+        "#cycle-color",
+        () => (card.colorIdx = (card.colorIdx + 1) % COLORS.length),
+      );
+      onClick("#toggle-scale", () => (card.scaled = !card.scaled));
+
+      // 5. render
+      const users = reactive({
+        list: [
+          { id: 1, name: "Alice", status: "active" },
+          { id: 2, name: "Bob", status: "inactive" },
+          { id: 3, name: "Charlie", status: "active" },
+        ],
+      });
+      let nextUserId = 4;
+      const NAMES = ["Diana", "Evan", "Fiona", "George", "Hannah"];
+
+      const activeCount = computed(
+        () => users.list.filter((u) => u.status === "active").length,
+      );
+      bindText(
+        "#user-count",
+        () => `${users.list.length} users (${activeCount.value} active)`,
+      );
+
+      render(
+        "#user-list",
+        () => {
+          if (!users.list.length)
+            return '<li style="text-align:center;opacity:.5;padding:1rem">No users</li>';
+          return users.list
+            .map(
+              (u) => `
+          <li style="padding:.6rem 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+            <span>${escapeHtmlEntities(u.name)}</span>
+            <span style="padding:.2rem .6rem;border-radius:4px;font-size:.8rem;font-weight:600;
+              background:${u.status === "active" ? "var(--success-l)" : "var(--warning-l)"};
+              color:${u.status === "active" ? "var(--success)" : "var(--warning)"}">
+              ${u.status}
+            </span>
+          </li>`,
+            )
+            .join("");
+        },
+        { trusted: true },
+      );
+
+      onClick("#add-user", () =>
+        users.list.push({
+          id: nextUserId++,
+          name: NAMES[Math.floor(Math.random() * NAMES.length)],
+          status: Math.random() > 0.5 ? "active" : "inactive",
+        }),
+      );
+      onClick("#remove-user", () => users.list.pop());
+      onClick("#toggle-first-status", () => {
+        if (users.list.length)
+          users.list[0].status =
+            users.list[0].status === "active" ? "inactive" : "active";
+      });
+      onClick(
+        "#sort-users",
+        () =>
+          (users.list = [...users.list].sort((a, b) =>
+            a.name.localeCompare(b.name),
+          )),
+      );
+    </script>
+  </body>
+</html>

@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>computed() · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="reactive.html">reactive()</a>
+        <a href="computed.html" class="active">computed()</a>
+        <a href="effect.html">effect()</a>
+        <a href="batch.html">batch()</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <header class="page-header">
+        <h1>computed()</h1>
+        <p class="page-subtitle">
+          Derived values that recompute automatically — and only when their
+          dependencies actually change.
+        </p>
+      </header>
+
+      <div class="card">
+        <!-- 1. Simple derived value -->
+        <div class="section">
+          <div class="section-title">1. Simple derived value</div>
+          <div class="section-desc">
+            Computed values are read-only and lazily evaluated — they only
+            recompute when accessed after a dependency changes.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="inc">+ Increment</button>
+            <button class="btn btn-secondary" id="dec">− Decrement</button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">count</span><span id="out-count">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">doubled</span
+              ><span id="out-doubled">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">squared</span
+              ><span id="out-squared">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Multiple sources -->
+        <div class="section">
+          <div class="section-title">2. Multiple dependencies</div>
+          <div class="section-desc">
+            A single computed value can depend on multiple reactive sources — it
+            updates whenever any of them change.
+          </div>
+          <div class="btn-group">
+            <label class="input-label"
+              >Width
+              <input
+                class="input"
+                type="number"
+                id="width-input"
+                value="10"
+                style="width: 80px"
+              />
+            </label>
+            <label class="input-label"
+              >Height
+              <input
+                class="input"
+                type="number"
+                id="height-input"
+                value="5"
+                style="width: 80px"
+              />
+            </label>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">width</span
+              ><span id="out-width">10</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">height</span
+              ><span id="out-height">5</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">area</span><span id="out-area">50</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">perimeter</span
+              ><span id="out-perimeter">30</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Chained computed -->
+        <div class="section">
+          <div class="section-title">3. Chained computed values</div>
+          <div class="section-desc">
+            Computed values can depend on other computed values — changes
+            propagate through the chain automatically.
+          </div>
+          <div class="btn-group">
+            <label class="input-label"
+              >Price $
+              <input
+                class="input"
+                type="number"
+                id="price-input"
+                value="100"
+                style="width: 80px"
+              />
+            </label>
+            <label class="input-label"
+              >Qty
+              <input
+                class="input"
+                type="number"
+                id="qty-input"
+                value="2"
+                style="width: 80px"
+              />
+            </label>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">subtotal</span
+              ><span>$<span id="out-subtotal">200.00</span></span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">tax (10%)</span
+              ><span>$<span id="out-tax">20.00</span></span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">total</span
+              ><span>$<span id="out-total">220.00</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Computed over arrays -->
+        <div class="section">
+          <div class="section-title">4. Computed over arrays</div>
+          <div class="section-desc">
+            Filter, map, and aggregate reactive arrays — the computed result
+            stays in sync as the array mutates.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="add-todo">Add Todo</button>
+            <button class="btn btn-secondary" id="toggle-first">
+              Toggle First
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">total</span><span id="out-all">2</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">completed</span
+              ><span id="out-done">1</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">pending</span
+              ><span id="out-pending">1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const { reactive, computed, bindText, bindInput, onClick } = Reactive;
+
+      // 1. Simple derived value
+      const counter = reactive({ value: 0 });
+      const doubled = computed(() => counter.value * 2);
+      const squared = computed(() => counter.value ** 2);
+
+      bindText("#out-count", () => counter.value);
+      bindText("#out-doubled", () => doubled.value);
+      bindText("#out-squared", () => squared.value);
+
+      onClick("#inc", () => counter.value++);
+      onClick("#dec", () => counter.value--);
+
+      // 2. Multiple dependencies
+      const dims = reactive({ width: 10, height: 5 });
+      const area = computed(() => dims.width * dims.height);
+      const perimeter = computed(() => 2 * (dims.width + dims.height));
+
+      bindText("#out-width", () => dims.width);
+      bindText("#out-height", () => dims.height);
+      bindText("#out-area", () => area.value);
+      bindText("#out-perimeter", () => perimeter.value);
+
+      bindInput("#width-input", {
+        get value() {
+          return dims.width;
+        },
+        set value(v) {
+          dims.width = +v || 0;
+        },
+        subscribe: (cb) => {
+          const stop = computed(() => dims.width).subscribe(cb);
+          return stop;
+        },
+      });
+      bindInput("#height-input", {
+        get value() {
+          return dims.height;
+        },
+        set value(v) {
+          dims.height = +v || 0;
+        },
+        subscribe: (cb) => {
+          const stop = computed(() => dims.height).subscribe(cb);
+          return stop;
+        },
+      });
+
+      // 3. Chained computed
+      const order = reactive({ price: 100, qty: 2 });
+      const subtotal = computed(() => order.price * order.qty);
+      const tax = computed(() => subtotal.value * 0.1);
+      const total = computed(() => subtotal.value + tax.value);
+
+      bindText("#out-subtotal", () => subtotal.value.toFixed(2));
+      bindText("#out-tax", () => tax.value.toFixed(2));
+      bindText("#out-total", () => total.value.toFixed(2));
+
+      bindInput("#price-input", {
+        get value() {
+          return order.price;
+        },
+        set value(v) {
+          order.price = +v || 0;
+        },
+        subscribe: (cb) => computed(() => order.price).subscribe(cb),
+      });
+      bindInput("#qty-input", {
+        get value() {
+          return order.qty;
+        },
+        set value(v) {
+          order.qty = +v || 0;
+        },
+        subscribe: (cb) => computed(() => order.qty).subscribe(cb),
+      });
+
+      // 4. Computed over arrays
+      const todos = reactive({
+        list: [
+          { id: 1, text: "Learn reactive", done: true },
+          { id: 2, text: "Build an app", done: false },
+        ],
+      });
+      let nextId = 3;
+
+      const doneCount = computed(() => todos.list.filter((t) => t.done).length);
+      const pendingCount = computed(
+        () => todos.list.filter((t) => !t.done).length,
+      );
+
+      bindText("#out-all", () => todos.list.length);
+      bindText("#out-done", () => doneCount.value);
+      bindText("#out-pending", () => pendingCount.value);
+
+      onClick("#add-todo", () =>
+        todos.list.push({
+          id: nextId++,
+          text: `Todo ${nextId - 1}`,
+          done: false,
+        }),
+      );
+      onClick("#toggle-first", () => {
+        if (todos.list.length) todos.list[0].done = !todos.list[0].done;
+      });
+    </script>
+  </body>
+</html>

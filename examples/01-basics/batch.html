@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>batch() · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="reactive.html">reactive()</a>
+        <a href="computed.html">computed()</a>
+        <a href="effect.html">effect()</a>
+        <a href="batch.html" class="active">batch()</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <header class="page-header">
+        <h1>batch()</h1>
+        <p class="page-subtitle">
+          Group multiple updates into a single notification — effects run once
+          instead of once per change.
+        </p>
+      </header>
+
+      <div class="card">
+        <!-- 1. Without batch -->
+        <div class="section">
+          <div class="section-title">1. Without batch() — 3 effect runs</div>
+          <div class="section-desc">
+            Each property update triggers effects independently, causing
+            redundant re-renders.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-danger" id="update-no-batch">
+              Update 3 Values
+            </button>
+            <button class="btn btn-secondary" id="clear-log1">Clear</button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">a</span><span id="a1">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">b</span><span id="b1">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">c</span><span id="c1">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">effect runs</span
+              ><span id="count1">0</span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log1"></div>
+        </div>
+
+        <!-- 2. With batch -->
+        <div class="section">
+          <div class="section-title">2. With batch() — 1 effect run</div>
+          <div class="section-desc">
+            All updates are collected and effects fire exactly once after the
+            batch completes.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="update-batch">
+              Update 3 Values (Batched)
+            </button>
+            <button class="btn btn-secondary" id="clear-log2">Clear</button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">a</span><span id="a2">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">b</span><span id="b2">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">c</span><span id="c2">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">effect runs</span
+              ><span id="count2">0</span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log2"></div>
+        </div>
+
+        <!-- 3. Form reset -->
+        <div class="section">
+          <div class="section-title">3. Real-world: form reset</div>
+          <div class="section-desc">
+            Reset multiple fields atomically — the UI updates once, not once per
+            field.
+          </div>
+          <div
+            class="btn-group"
+            style="flex-direction: column; align-items: stretch"
+          >
+            <input class="input" type="text" id="f-name" placeholder="Name" />
+            <input
+              class="input"
+              type="email"
+              id="f-email"
+              placeholder="Email"
+            />
+            <input class="input" type="text" id="f-phone" placeholder="Phone" />
+          </div>
+          <div class="btn-group mt-sm">
+            <button class="btn btn-primary" id="fill-form">Fill</button>
+            <button class="btn btn-secondary" id="reset-form">
+              Reset (Batched)
+            </button>
+            <button class="btn btn-secondary" id="clear-log3">Clear</button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">render count</span
+              ><span id="count3">0</span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log3"></div>
+        </div>
+
+        <!-- 4. Performance -->
+        <div class="section">
+          <div class="section-title">4. Performance: 100 updates</div>
+          <div class="section-desc">
+            Without batching, 100 updates trigger 100 effect runs. With
+            batching, just 1.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-danger" id="perf-no-batch">
+              100 Updates (No Batch)
+            </button>
+            <button class="btn btn-primary" id="perf-batch">
+              100 Updates (Batched)
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">value</span><span id="perf-val">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">effect runs</span
+              ><span id="perf-runs">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">time</span><span id="perf-time">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const { reactive, effect, batch, bindText, bindInput, onClick } =
+        Reactive;
+
+      function log(id, msg) {
+        const el = document.getElementById(id);
+        const t = new Date().toLocaleTimeString();
+        el.innerHTML = `[${t}] ${msg}\n` + el.innerHTML;
+      }
+
+      // 1. Without batch
+      const s1 = reactive({ a: 0, b: 0, c: 0 });
+      let runs1 = 0;
+      effect(() => {
+        runs1++;
+        bindText("#a1", () => s1.a);
+        bindText("#b1", () => s1.b);
+        bindText("#c1", () => s1.c);
+        bindText("#count1", () => runs1);
+        log("log1", `Run #${runs1}: a=${s1.a}, b=${s1.b}, c=${s1.c}`);
+      });
+      onClick("#update-no-batch", () => {
+        s1.a++;
+        s1.b++;
+        s1.c++;
+      });
+      onClick(
+        "#clear-log1",
+        () => (document.getElementById("log1").innerHTML = ""),
+      );
+
+      // 2. With batch
+      const s2 = reactive({ a: 0, b: 0, c: 0 });
+      let runs2 = 0;
+      effect(() => {
+        runs2++;
+        bindText("#a2", () => s2.a);
+        bindText("#b2", () => s2.b);
+        bindText("#c2", () => s2.c);
+        bindText("#count2", () => runs2);
+        log("log2", `Run #${runs2}: a=${s2.a}, b=${s2.b}, c=${s2.c}`);
+      });
+      onClick("#update-batch", () =>
+        batch(() => {
+          s2.a++;
+          s2.b++;
+          s2.c++;
+        }),
+      );
+      onClick(
+        "#clear-log2",
+        () => (document.getElementById("log2").innerHTML = ""),
+      );
+
+      // 3. Form reset
+      const form = reactive({ name: "", email: "", phone: "" });
+      let runs3 = 0;
+
+      bindInput("#f-name", {
+        get value() {
+          return form.name;
+        },
+        set value(v) {
+          form.name = v;
+        },
+        subscribe: (cb) =>
+          reactive(form).subscribe
+            ? (form.subscribe?.(cb) ?? (() => {}))
+            : () => {},
+      });
+      bindInput("#f-email", {
+        get value() {
+          return form.email;
+        },
+        set value(v) {
+          form.email = v;
+        },
+        subscribe: () => () => {},
+      });
+      bindInput("#f-phone", {
+        get value() {
+          return form.phone;
+        },
+        set value(v) {
+          form.phone = v;
+        },
+        subscribe: () => () => {},
+      });
+
+      effect(() => {
+        runs3++;
+        document.getElementById("count3").textContent = runs3;
+        log(
+          "log3",
+          `Render #${runs3}: "${form.name}", "${form.email}", "${form.phone}"`,
+        );
+      });
+
+      onClick("#fill-form", () =>
+        batch(() => {
+          form.name = "Jane Doe";
+          form.email = "jane@example.com";
+          form.phone = "555-0100";
+          document.getElementById("f-name").value = form.name;
+          document.getElementById("f-email").value = form.email;
+          document.getElementById("f-phone").value = form.phone;
+        }),
+      );
+      onClick("#reset-form", () =>
+        batch(() => {
+          form.name = form.email = form.phone = "";
+          document.getElementById("f-name").value = "";
+          document.getElementById("f-email").value = "";
+          document.getElementById("f-phone").value = "";
+        }),
+      );
+      onClick(
+        "#clear-log3",
+        () => (document.getElementById("log3").innerHTML = ""),
+      );
+
+      // 4. Performance
+      const perf = reactive({ value: 0 });
+      let perfRuns = 0;
+      effect(() => {
+        perfRuns++;
+        bindText("#perf-val", () => perf.value);
+        bindText("#perf-runs", () => perfRuns);
+      });
+
+      onClick("#perf-no-batch", () => {
+        perfRuns = 0;
+        perf.value = 0;
+        const t0 = performance.now();
+        for (let i = 0; i < 100; i++) perf.value++;
+        bindText(
+          "#perf-time",
+          () =>
+            `${(performance.now() - t0).toFixed(2)}ms — ${perfRuns} effect runs`,
+        );
+      });
+      onClick("#perf-batch", () => {
+        perfRuns = 0;
+        perf.value = 0;
+        const t0 = performance.now();
+        batch(() => {
+          for (let i = 0; i < 100; i++) perf.value++;
+        });
+        bindText(
+          "#perf-time",
+          () =>
+            `${(performance.now() - t0).toFixed(2)}ms — ${perfRuns} effect run`,
+        );
+      });
+    </script>
+  </body>
+</html>

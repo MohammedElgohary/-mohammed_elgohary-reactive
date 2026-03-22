@@ -1,0 +1,29 @@
+# Source files (only dist is needed)
+src/
+examples/
+
+# Build configs
+vite.config.*
+tsconfig.json
+
+# Development files
+*.md
+!README.md
+node_modules/
+package-lock.json
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Test files
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+__tests__/
+coverage/

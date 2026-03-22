@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Watch · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="watch.html">watch()</a>
+        <a href="watch-advanced.html" class="active">Advanced Watch</a>
+      </div>
+    </nav>
+    <main class="page">
+      <header class="page-header">
+        <h1>Advanced Watch</h1>
+        <p class="page-subtitle">
+          watchMultiple() and watchProperty() for fine-grained observation.
+        </p>
+      </header>
+
+      <div class="card">
+        <!-- 1. watchMultiple -->
+        <div class="section">
+          <div class="section-title">1. watchMultiple()</div>
+          <div class="section-desc">
+            Watch multiple sources at once. Callback receives arrays of new and
+            old values.
+          </div>
+          <div class="btn-group">
+            <label class="input-label"
+              >X
+              <input
+                class="input"
+                type="number"
+                id="x-input"
+                value="0"
+                style="width: 70px"
+              />
+            </label>
+            <label class="input-label"
+              >Y
+              <input
+                class="input"
+                type="number"
+                id="y-input"
+                value="0"
+                style="width: 70px"
+              />
+            </label>
+            <label class="input-label"
+              >Z
+              <input
+                class="input"
+                type="number"
+                id="z-input"
+                value="0"
+                style="width: 70px"
+              />
+            </label>
+            <button class="btn btn-primary" id="randomize-all">
+              Randomize All
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">X</span><span id="x-value">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Y</span><span id="y-value">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Z</span><span id="z-value">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Sum</span><span id="sum-value">0</span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log1"></div>
+        </div>
+
+        <!-- 2. watchProperty -->
+        <div class="section">
+          <div class="section-title">2. watchProperty()</div>
+          <div class="section-desc">
+            Only triggers when that specific property changes — no noise from
+            unrelated updates.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="change-name">
+              Change Name
+            </button>
+            <button class="btn btn-secondary" id="change-email">
+              Change Email
+            </button>
+            <button class="btn btn-secondary" id="change-age">
+              Change Age
+            </button>
+            <button class="btn btn-secondary" id="change-all">
+              Change All
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">Name</span
+              ><span id="user-name">John</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Email</span
+              ><span id="user-email">john@example.com</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Age</span><span id="user-age">25</span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log2"></div>
+        </div>
+
+        <!-- 3. Form Validation -->
+        <div class="section">
+          <div class="section-title">3. Real-World: Form Validation</div>
+          <div class="section-desc">
+            Use watchMultiple to validate a form whenever any field changes.
+          </div>
+          <div class="btn-group">
+            <input
+              class="input"
+              type="text"
+              id="username"
+              placeholder="Username (min 3 chars)"
+            />
+            <input
+              class="input"
+              type="password"
+              id="password"
+              placeholder="Password (min 6 chars)"
+            />
+            <input
+              class="input"
+              type="password"
+              id="confirm"
+              placeholder="Confirm password"
+            />
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">Username valid</span
+              ><span id="username-valid">❌</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Password valid</span
+              ><span id="password-valid">❌</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Passwords match</span
+              ><span id="passwords-match">❌</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Form valid</span
+              ><span id="form-valid">❌</span>
+            </div>
+          </div>
+          <div class="btn-group mt-sm">
+            <button class="btn btn-primary" id="submit-form" disabled>
+              Submit
+            </button>
+          </div>
+          <div class="log-box mt-sm" id="log3"></div>
+        </div>
+
+        <!-- 4. watchProperty — Nested Objects -->
+        <div class="section">
+          <div class="section-title">4. watchProperty() — Nested Objects</div>
+          <div class="section-desc">
+            Watch specific properties in complex nested structures.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="change-city">
+              Change City
+            </button>
+            <button class="btn btn-secondary" id="change-zip">
+              Change ZIP
+            </button>
+            <button class="btn btn-secondary" id="change-country">
+              Change Country
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">City</span
+              ><span id="address-city">New York</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">ZIP</span
+              ><span id="address-zip">10001</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Country</span
+              ><span id="address-country">USA</span>
+            </div>
+          </div>
+          <div class="log-box mt-sm" id="log4"></div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const {
+        reactive,
+        computed,
+        watch,
+        watchMultiple,
+        watchProperty,
+        batch,
+        bindText,
+        bindAttr,
+        onClick,
+        onInput,
+      } = Reactive;
+
+      function log(id, message) {
+        const el = document.getElementById(id);
+        const time = new Date().toLocaleTimeString();
+        el.innerHTML = `[${time}] ${message}\n` + el.innerHTML;
+      }
+
+      // ── 1. watchMultiple ──────────────────────────────────────────────────
+      const coords = reactive({ x: 0, y: 0, z: 0 });
+      const coordSum = computed(() => coords.x + coords.y + coords.z);
+
+      bindText("#x-value", () => coords.x);
+      bindText("#y-value", () => coords.y);
+      bindText("#z-value", () => coords.z);
+      bindText("#sum-value", () => coordSum.value);
+
+      watchMultiple(
+        [() => coords.x, () => coords.y, () => coords.z],
+        ([newX, newY, newZ], [oldX, oldY, oldZ]) => {
+          log(
+            "log1",
+            `Changed: (${oldX},${oldY},${oldZ}) → (${newX},${newY},${newZ})`,
+          );
+        },
+      );
+
+      onInput("#x-input", (e) => (coords.x = +e.target.value || 0));
+      onInput("#y-input", (e) => (coords.y = +e.target.value || 0));
+      onInput("#z-input", (e) => (coords.z = +e.target.value || 0));
+
+      onClick("#randomize-all", () => {
+        batch(() => {
+          coords.x = Math.floor(Math.random() * 100);
+          coords.y = Math.floor(Math.random() * 100);
+          coords.z = Math.floor(Math.random() * 100);
+        });
+        // sync number inputs to new values
+        document.getElementById("x-input").value = coords.x;
+        document.getElementById("y-input").value = coords.y;
+        document.getElementById("z-input").value = coords.z;
+      });
+
+      // ── 2. watchProperty ──────────────────────────────────────────────────
+      const user = reactive({
+        name: "John",
+        email: "john@example.com",
+        age: 25,
+      });
+      const U_NAMES = ["John", "Jane", "Bob", "Alice", "Charlie"];
+      const DOMAINS = ["example.com", "test.org", "demo.net"];
+
+      bindText("#user-name", () => user.name);
+      bindText("#user-email", () => user.email);
+      bindText("#user-age", () => user.age);
+
+      watchProperty(user, "name", (n, o) =>
+        log("log2", `Name: "${o}" → "${n}"`),
+      );
+      watchProperty(user, "email", (n, o) =>
+        log("log2", `Email: "${o}" → "${n}"`),
+      );
+      watchProperty(user, "age", (n, o) => log("log2", `Age: ${o} → ${n}`));
+
+      onClick(
+        "#change-name",
+        () => (user.name = U_NAMES[Math.floor(Math.random() * U_NAMES.length)]),
+      );
+      onClick(
+        "#change-email",
+        () =>
+          (user.email = `${user.name.toLowerCase()}@${DOMAINS[Math.floor(Math.random() * DOMAINS.length)]}`),
+      );
+      onClick(
+        "#change-age",
+        () => (user.age = Math.floor(Math.random() * 50) + 18),
+      );
+      onClick("#change-all", () =>
+        batch(() => {
+          user.name = U_NAMES[Math.floor(Math.random() * U_NAMES.length)];
+          user.email = `${user.name.toLowerCase()}@${DOMAINS[Math.floor(Math.random() * DOMAINS.length)]}`;
+          user.age = Math.floor(Math.random() * 50) + 18;
+        }),
+      );
+
+      // ── 3. Form Validation ────────────────────────────────────────────────
+      const form = reactive({ username: "", password: "", confirm: "" });
+      const v = reactive({
+        usernameOk: false,
+        passwordOk: false,
+        matchOk: false,
+        formOk: false,
+      });
+
+      bindText("#username-valid", () => (v.usernameOk ? "✅" : "❌"));
+      bindText("#password-valid", () => (v.passwordOk ? "✅" : "❌"));
+      bindText("#passwords-match", () => (v.matchOk ? "✅" : "❌"));
+      bindText("#form-valid", () => (v.formOk ? "✅" : "❌"));
+      bindAttr("#submit-form", "disabled", () => (v.formOk ? null : true));
+
+      watchMultiple(
+        [() => form.username, () => form.password, () => form.confirm],
+        ([username, password, confirm]) => {
+          batch(() => {
+            v.usernameOk = username.length >= 3;
+            v.passwordOk = password.length >= 6;
+            v.matchOk = password === confirm && password.length > 0;
+            v.formOk = v.usernameOk && v.passwordOk && v.matchOk;
+          });
+          log(
+            "log3",
+            `Validating: user=${username.length}ch, pass=${password.length}ch`,
+          );
+        },
+      );
+
+      onInput("#username", (e) => (form.username = e.target.value));
+      onInput("#password", (e) => (form.password = e.target.value));
+      onInput("#confirm", (e) => (form.confirm = e.target.value));
+      onClick("#submit-form", () =>
+        log("log3", `✅ Submitted! User: ${form.username}`),
+      );
+
+      // ── 4. watchProperty — Nested ─────────────────────────────────────────
+      const profile = reactive({
+        address: { city: "New York", zip: "10001", country: "USA" },
+      });
+      const CITIES = [
+        "New York",
+        "Los Angeles",
+        "Chicago",
+        "Houston",
+        "Phoenix",
+      ];
+      const COUNTRIES = ["USA", "Canada", "UK", "Australia"];
+
+      bindText("#address-city", () => profile.address.city);
+      bindText("#address-zip", () => profile.address.zip);
+      bindText("#address-country", () => profile.address.country);
+
+      watchProperty(profile, "address", (newVal) =>
+        log("log4", `Address changed: ${JSON.stringify(newVal)}`),
+      );
+
+      onClick("#change-city", () => {
+        profile.address.city =
+          CITIES[Math.floor(Math.random() * CITIES.length)];
+        log("log4", `City → ${profile.address.city}`);
+      });
+      onClick("#change-zip", () => {
+        profile.address.zip = String(Math.floor(Math.random() * 90000) + 10000);
+        log("log4", `ZIP → ${profile.address.zip}`);
+      });
+      onClick("#change-country", () => {
+        profile.address.country =
+          COUNTRIES[Math.floor(Math.random() * COUNTRIES.length)];
+        log("log4", `Country → ${profile.address.country}`);
+      });
+    </script>
+  </body>
+</html>

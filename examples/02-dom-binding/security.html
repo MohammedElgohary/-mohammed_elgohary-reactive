@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Security · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="bind-text.html">bindText()</a>
+        <a href="bind-input.html">bindInput()</a>
+        <a href="bind-class-style.html">bindClass/Style()</a>
+        <a href="bind-advanced.html">Advanced</a>
+        <a href="bind-unified.html">bind()</a>
+        <a href="security.html" class="active">Security</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <header class="page-header">
+        <h1>Security — XSS Protection</h1>
+        <p class="page-subtitle">
+          Built-in protection against Cross-Site Scripting. Every DOM binding
+          sanitizes by default — opt in to trust, never opt out of safety.
+        </p>
+      </header>
+
+      <!-- 1. Default sanitization -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">1. Default sanitization</div>
+          <div class="section-desc">
+            <code>bindHTML()</code> and <code>render()</code> sanitize HTML
+            automatically. Scripts, event handlers, and dangerous tags are
+            stripped.
+          </div>
+          <div class="btn-group">
+            <textarea
+              id="in-1"
+              class="input"
+              rows="2"
+              placeholder="Try: &lt;script&gt;alert('xss')&lt;/script&gt;"
+              style="flex: 1; resize: vertical"
+            ></textarea>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="btn-render-1">
+              Render (sanitized)
+            </button>
+          </div>
+          <div class="output-box mt-sm">
+            <div style="font-size: 0.8rem; opacity: 0.6; margin-bottom: 0.5rem">
+              Output:
+            </div>
+            <div id="out-1"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Escape vs sanitize -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">
+            2. escapeHtmlEntities() vs sanitizeHtmlContent()
+          </div>
+          <div class="section-desc">
+            <strong>Escape</strong> converts all HTML to entities — shows as
+            literal text. <strong>Sanitize</strong> strips dangerous parts but
+            keeps safe markup.
+          </div>
+          <div class="btn-group">
+            <textarea
+              id="in-2"
+              class="input"
+              rows="2"
+              placeholder="Try: &lt;b&gt;Bold&lt;/b&gt; &lt;script&gt;bad()&lt;/script&gt;"
+              style="flex: 1; resize: vertical"
+            ></textarea>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-secondary" id="btn-escape">
+              escapeHtmlEntities()
+            </button>
+            <button class="btn btn-primary" id="btn-sanitize">
+              sanitizeHtmlContent()
+            </button>
+          </div>
+          <div
+            class="output-box mt-sm"
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem"
+          >
+            <div>
+              <div
+                style="font-size: 0.8rem; opacity: 0.6; margin-bottom: 0.5rem"
+              >
+                Escaped (text):
+              </div>
+              <div id="out-escaped"></div>
+            </div>
+            <div>
+              <div
+                style="font-size: 0.8rem; opacity: 0.6; margin-bottom: 0.5rem"
+              >
+                Sanitized (HTML):
+              </div>
+              <div id="out-sanitized"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Trusted content -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">3. { trusted: true } — when and why</div>
+          <div class="section-desc">
+            Use <code>trusted: true</code> only for templates you wrote. Never
+            for user input, URL params, or API data you don't control.
+          </div>
+          <div
+            class="output-box"
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 1rem;
+              margin-bottom: 1rem;
+            "
+          >
+            <div>
+              <div
+                style="
+                  color: var(--success);
+                  font-weight: 600;
+                  margin-bottom: 0.5rem;
+                "
+              >
+                ✅ Safe to trust:
+              </div>
+              <ul
+                style="
+                  margin: 0;
+                  padding-left: 1.25rem;
+                  line-height: 1.8;
+                  font-size: 0.9rem;
+                "
+              >
+                <li>Templates in your source code</li>
+                <li>Static HTML from your build</li>
+                <li>CMS content with server-side sanitization</li>
+              </ul>
+            </div>
+            <div>
+              <div
+                style="
+                  color: var(--danger);
+                  font-weight: 600;
+                  margin-bottom: 0.5rem;
+                "
+              >
+                ❌ Never trust:
+              </div>
+              <ul
+                style="
+                  margin: 0;
+                  padding-left: 1.25rem;
+                  line-height: 1.8;
+                  font-size: 0.9rem;
+                "
+              >
+                <li>User comments or form input</li>
+                <li>URL query parameters</li>
+                <li>Data from third-party APIs</li>
+              </ul>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btn-trusted">
+            Render Trusted Template
+          </button>
+          <div
+            class="output-box mt-sm"
+            id="out-3"
+            style="min-height: 2rem"
+          ></div>
+        </div>
+      </div>
+
+      <!-- 4. User data in templates -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">4. User data inside trusted templates</div>
+          <div class="section-desc">
+            When embedding user values inside a trusted template, escape them
+            with <code>escapeHtmlEntities()</code> first.
+          </div>
+          <div class="btn-group">
+            <input
+              type="text"
+              id="in-username"
+              class="input"
+              placeholder="Username (try HTML)"
+              style="flex: 1"
+            />
+            <input
+              type="text"
+              id="in-message"
+              class="input"
+              placeholder="Message (try HTML)"
+              style="flex: 2"
+            />
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="btn-comment">
+              Render Comment
+            </button>
+          </div>
+          <div
+            class="output-box mt-sm"
+            id="out-4"
+            style="min-height: 2rem"
+          ></div>
+        </div>
+      </div>
+
+      <!-- 5. URL validation -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">
+            5. isUrlSafe() — block javascript: URLs
+          </div>
+          <div class="section-desc">
+            <code>bindAttr()</code> validates URLs for <code>href</code>,
+            <code>src</code>, and <code>action</code> automatically. Use
+            <code>isUrlSafe()</code> for manual checks.
+          </div>
+          <div class="btn-group">
+            <input
+              type="text"
+              id="in-url"
+              class="input"
+              placeholder="Enter a URL"
+              style="flex: 1"
+            />
+            <button class="btn btn-primary" id="btn-check-url">Check</button>
+          </div>
+          <div
+            class="output-box mt-sm"
+            id="out-5"
+            style="min-height: 2rem"
+          ></div>
+          <div class="output-box mt-sm">
+            <table
+              style="width: 100%; border-collapse: collapse; font-size: 0.85rem"
+            >
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border)">
+                  <th style="text-align: left; padding: 0.5rem">URL</th>
+                  <th style="text-align: left; padding: 0.5rem">Safe?</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid var(--border)">
+                  <td style="padding: 0.5rem">https://example.com</td>
+                  <td style="padding: 0.5rem; color: var(--success)">✅ Yes</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border)">
+                  <td style="padding: 0.5rem">/relative/path</td>
+                  <td style="padding: 0.5rem; color: var(--success)">✅ Yes</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border)">
+                  <td style="padding: 0.5rem">javascript:alert('xss')</td>
+                  <td style="padding: 0.5rem; color: var(--danger)">❌ No</td>
+                </tr>
+                <tr>
+                  <td style="padding: 0.5rem">
+                    data:text/html,&lt;script&gt;…
+                  </td>
+                  <td style="padding: 0.5rem; color: var(--danger)">❌ No</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Blocked attributes -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">
+            6. Blocked attributes &amp; properties
+          </div>
+          <div class="section-desc">
+            <code>bindAttr()</code> blocks all <code>on*</code> event handlers.
+            <code>bindProp()</code> blocks <code>innerHTML</code> and similar.
+          </div>
+          <button class="btn btn-danger" id="btn-test-blocked">
+            Test Blocked Bindings
+          </button>
+          <div
+            class="output-box mt-sm"
+            id="out-6"
+            style="min-height: 2rem"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Quick reference -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">Quick reference</div>
+          <div class="output-box">
+            <table
+              style="width: 100%; border-collapse: collapse; font-size: 0.85rem"
+            >
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border)">
+                  <th style="text-align: left; padding: 0.5rem">Scenario</th>
+                  <th style="text-align: left; padding: 0.5rem">Use</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid var(--border)">
+                  <td style="padding: 0.5rem">Display user text</td>
+                  <td style="padding: 0.5rem"><code>bindText()</code></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border)">
+                  <td style="padding: 0.5rem">Display user HTML</td>
+                  <td style="padding: 0.5rem">
+                    <code>bindHTML()</code> — auto-sanitized
+                  </td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border)">
+                  <td style="padding: 0.5rem">User data in template</td>
+                  <td style="padding: 0.5rem">
+                    <code>escapeHtmlEntities()</code> +
+                    <code>{ trusted: true }</code>
+                  </td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border)">
+                  <td style="padding: 0.5rem">Developer template</td>
+                  <td style="padding: 0.5rem">
+                    <code>render(…, { trusted: true })</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 0.5rem">Validate a URL</td>
+                  <td style="padding: 0.5rem"><code>isUrlSafe(url)</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const {
+        reactive,
+        bindHTML,
+        render,
+        escapeHtmlEntities,
+        sanitizeHtmlContent,
+        isUrlSafe,
+        bindAttr,
+        bindProp,
+        onClick,
+      } = Reactive;
+
+      // Pre-fill examples
+      document.getElementById("in-1").value =
+        '<b>Hello</b> <script>alert("xss")<\/script>';
+      document.getElementById("in-2").value =
+        "<b>Bold<\/b> <script>bad()<\/script>";
+      document.getElementById("in-url").value = 'javascript:alert("xss")';
+
+      // 1. Default sanitization
+      onClick("#btn-render-1", () => {
+        const input = document.getElementById("in-1").value;
+        bindHTML("#out-1", () => input);
+      });
+
+      // 2. Escape vs sanitize
+      onClick("#btn-escape", () => {
+        document.getElementById("out-escaped").textContent = escapeHtmlEntities(
+          document.getElementById("in-2").value,
+        );
+      });
+      onClick("#btn-sanitize", () => {
+        document.getElementById("out-sanitized").innerHTML =
+          sanitizeHtmlContent(document.getElementById("in-2").value);
+      });
+
+      // 3. Trusted content
+      const trusted = reactive({
+        title: "Welcome!",
+        items: ["Feature A", "Feature B", "Feature C"],
+      });
+      onClick("#btn-trusted", () => {
+        render(
+          "#out-3",
+          () => `
+          <div style="background:var(--surface-2);padding:1rem;border-radius:6px;border-left:3px solid var(--primary)">
+            <h3 style="margin:0 0 .5rem;color:var(--primary)">${trusted.title}</h3>
+            <ul style="margin:0;padding-left:1.25rem">${trusted.items.map((i) => `<li>${i}</li>`).join("")}</ul>
+          </div>`,
+          { trusted: true },
+        );
+      });
+
+      // 4. User data in templates
+      onClick("#btn-comment", () => {
+        const user =
+          document.getElementById("in-username").value || "Anonymous";
+        const msg =
+          document.getElementById("in-message").value || "(no message)";
+        render(
+          "#out-4",
+          () => `
+          <div style="background:var(--surface-2);padding:1rem;border-radius:6px;border-left:3px solid var(--primary)">
+            <strong style="color:var(--primary)">${escapeHtmlEntities(user)}</strong>
+            <p style="margin:.5rem 0 0">${escapeHtmlEntities(msg)}</p>
+          </div>`,
+          { trusted: true },
+        );
+      });
+
+      // 5. URL validation
+      onClick("#btn-check-url", () => {
+        const url = document.getElementById("in-url").value;
+        const safe = isUrlSafe(url);
+        document.getElementById("out-5").innerHTML = safe
+          ? `<span style="color:var(--success)">✅ Safe: ${escapeHtmlEntities(url)}</span>`
+          : `<span style="color:var(--danger)">❌ Blocked: ${escapeHtmlEntities(url)}</span>`;
+      });
+
+      // 6. Blocked bindings
+      onClick("#btn-test-blocked", () => {
+        const results = [];
+        const el = document.createElement("div");
+        const origWarn = console.warn;
+        let caught = false;
+        console.warn = () => {
+          caught = true;
+        };
+
+        caught = false;
+        bindAttr(el, "onclick", () => "alert()");
+        results.push(
+          caught
+            ? '🔒 bindAttr("onclick") — BLOCKED ✓'
+            : "⚠️ onclick — not blocked",
+        );
+
+        caught = false;
+        bindAttr(el, "onerror", () => "alert()");
+        results.push(
+          caught
+            ? '🔒 bindAttr("onerror") — BLOCKED ✓'
+            : "⚠️ onerror — not blocked",
+        );
+
+        caught = false;
+        bindProp(el, "innerHTML", () => "<b>test</b>");
+        results.push(
+          caught
+            ? '🔒 bindProp("innerHTML") — BLOCKED ✓'
+            : "⚠️ innerHTML — not blocked",
+        );
+
+        caught = false;
+        bindAttr(el, "href", () => "javascript:alert()");
+        results.push(
+          caught
+            ? '🔒 bindAttr("href", "javascript:…") — BLOCKED ✓'
+            : "⚠️ javascript: href — not blocked",
+        );
+
+        console.warn = origWarn;
+        document.getElementById("out-6").innerHTML = results
+          .map(
+            (r) =>
+              `<div style="padding:.3rem 0;color:${r.includes("BLOCKED") ? "var(--success)" : "var(--warning)"}">${r}</div>`,
+          )
+          .join("");
+      });
+    </script>
+  </body>
+</html>

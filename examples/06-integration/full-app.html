@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Full Integration · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+      .app-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 1.25rem;
+      }
+      .progress-bar-wrap {
+        height: 8px;
+        background: var(--surface-2);
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 0.5rem 0;
+      }
+      .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), #a78bfa);
+        border-radius: 4px;
+        transition: width 0.3s;
+      }
+      .task-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.6rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.9rem;
+      }
+      .task-item:last-child {
+        border-bottom: none;
+      }
+      .task-item.completed .task-text {
+        text-decoration: line-through;
+        color: var(--muted);
+      }
+      .task-item input[type="checkbox"] {
+        accent-color: var(--primary);
+      }
+      .task-text {
+        flex: 1;
+      }
+      .priority-badge {
+        font-size: 0.7rem;
+        padding: 0.15rem 0.45rem;
+        border-radius: 999px;
+        font-weight: 600;
+      }
+      .priority-high {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--danger);
+      }
+      .priority-medium {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+      }
+      .priority-low {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--success);
+      }
+      .filter-btn {
+        padding: 0.35rem 0.75rem;
+        border-radius: var(--r-sm);
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: all 0.15s;
+      }
+      .filter-btn.active {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+      }
+      .settings-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+      }
+      .settings-row label {
+        font-size: 0.85rem;
+        color: var(--muted);
+        min-width: 110px;
+      }
+      .settings-row input {
+        flex: 1;
+      }
+      .settings-json {
+        background: var(--surface-2);
+        border-radius: var(--r-sm);
+        padding: 0.75rem;
+        font-family: monospace;
+        font-size: 0.75rem;
+        color: var(--muted);
+        white-space: pre-wrap;
+        max-height: 140px;
+        overflow-y: auto;
+        margin-top: 0.75rem;
+      }
+      .batch-stat {
+        text-align: center;
+        padding: 0.75rem;
+        background: var(--surface-2);
+        border-radius: var(--r-sm);
+      }
+      .batch-stat-val {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+      }
+      .batch-stat-label {
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+      .empty-tasks {
+        text-align: center;
+        padding: 1.5rem;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">&#9889; Reactive</a>
+      <div class="topbar-links">
+        <a href="full-app.html" class="active">Full Integration</a>
+      </div>
+    </nav>
+    <main class="page">
+      <header class="page-header">
+        <h1>Full Integration</h1>
+        <p class="page-subtitle">
+          reactive, computed, effect, watch, batch, and DOM bindings all working
+          together.
+        </p>
+      </header>
+
+      <div class="app-grid">
+        <!-- Task Manager -->
+        <div class="card">
+          <div class="section">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div class="section-title">Task Manager</div>
+              <span
+                id="task-count"
+                style="font-size: 0.8rem; color: var(--muted)"
+                >0 tasks</span
+              >
+            </div>
+            <div class="btn-group" style="gap: 1rem; margin-bottom: 0.5rem">
+              <div class="batch-stat" style="flex: 1">
+                <div class="batch-stat-val" id="total-tasks">0</div>
+                <div class="batch-stat-label">Total</div>
+              </div>
+              <div class="batch-stat" style="flex: 1">
+                <div class="batch-stat-val" id="pending-tasks">0</div>
+                <div class="batch-stat-label">Pending</div>
+              </div>
+              <div class="batch-stat" style="flex: 1">
+                <div class="batch-stat-val" id="completed-tasks">0</div>
+                <div class="batch-stat-label">Done</div>
+              </div>
+            </div>
+            <div class="progress-bar-wrap">
+              <div
+                class="progress-bar-fill"
+                id="progress-fill"
+                style="width: 0%"
+              ></div>
+            </div>
+            <div
+              style="
+                text-align: center;
+                font-size: 0.8rem;
+                color: var(--muted);
+                margin-bottom: 0.75rem;
+              "
+            >
+              <span id="progress-text">0%</span> complete
+            </div>
+            <div class="btn-group">
+              <input
+                class="input"
+                style="flex: 1"
+                type="text"
+                id="new-task"
+                placeholder="Add new task..."
+              />
+              <select class="input" id="task-priority" style="width: auto">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+              </select>
+              <button class="btn btn-primary" id="add-task">Add</button>
+            </div>
+            <div class="btn-group mt-sm">
+              <button class="filter-btn active" id="filter-all">All</button>
+              <button class="filter-btn" id="filter-pending">Pending</button>
+              <button class="filter-btn" id="filter-completed">
+                Completed
+              </button>
+              <button class="filter-btn" id="filter-high">High Priority</button>
+            </div>
+            <div
+              id="task-list"
+              style="max-height: 240px; overflow-y: auto; margin-top: 0.5rem"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="card">
+          <div class="section">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div class="section-title">Settings</div>
+              <button
+                class="btn btn-danger"
+                id="reset-all"
+                style="font-size: 0.8rem; padding: 0.3rem 0.7rem"
+              >
+                Reset All
+              </button>
+            </div>
+            <div class="settings-row">
+              <label>Username</label>
+              <input
+                class="input"
+                type="text"
+                id="username"
+                placeholder="Enter username"
+              />
+            </div>
+            <div class="settings-row">
+              <label>Theme Color</label>
+              <input
+                type="color"
+                id="theme-color"
+                value="#6366f1"
+                style="
+                  width: 48px;
+                  height: 32px;
+                  border: none;
+                  background: none;
+                  cursor: pointer;
+                "
+              />
+            </div>
+            <div class="settings-row">
+              <label>Font Size: <span id="font-size-value">16</span>px</label>
+              <input
+                type="range"
+                id="font-size"
+                min="12"
+                max="24"
+                value="16"
+                style="flex: 1"
+              />
+            </div>
+            <div class="settings-row">
+              <label><input type="checkbox" id="dark-mode" /> Dark Mode</label>
+            </div>
+            <div class="settings-row">
+              <label
+                ><input type="checkbox" id="notifications" checked />
+                Notifications</label
+              >
+            </div>
+            <div class="settings-json" id="settings-json"></div>
+          </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="card">
+          <div class="section">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div class="section-title">Activity Log (watch)</div>
+              <button
+                class="btn btn-secondary"
+                id="clear-log"
+                style="font-size: 0.8rem; padding: 0.3rem 0.7rem"
+              >
+                Clear
+              </button>
+            </div>
+            <div class="log-box mt-sm" id="activity-log">
+              Waiting for activity...
+            </div>
+          </div>
+        </div>
+
+        <!-- Batch Demo -->
+        <div class="card">
+          <div class="section">
+            <div class="section-title">Batch Updates Demo</div>
+            <p
+              style="
+                font-size: 0.85rem;
+                color: var(--muted);
+                margin-bottom: 0.75rem;
+              "
+            >
+              Compare effect runs with and without batching:
+            </p>
+            <div class="btn-group" style="gap: 0.75rem; margin-bottom: 0.75rem">
+              <div class="batch-stat" style="flex: 1">
+                <div class="batch-stat-val" id="batch-a">0</div>
+                <div class="batch-stat-label">Value A</div>
+              </div>
+              <div class="batch-stat" style="flex: 1">
+                <div class="batch-stat-val" id="batch-b">0</div>
+                <div class="batch-stat-label">Value B</div>
+              </div>
+              <div class="batch-stat" style="flex: 1">
+                <div class="batch-stat-val" id="batch-c">0</div>
+                <div class="batch-stat-label">Value C</div>
+              </div>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-danger" id="update-no-batch">
+                Update (No Batch)
+              </button>
+              <button class="btn btn-primary" id="update-batch">
+                Update (Batched)
+              </button>
+            </div>
+            <div class="output-box mt-sm">
+              <div class="stat-row">
+                <span class="stat-label">Effect runs</span>
+                <strong id="effect-count">0</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const {
+        reactive,
+        computed,
+        effect,
+        watch,
+        batch,
+        bindText,
+        bindClass,
+        bindStyle,
+        render,
+        onClick,
+        onEnter,
+        onInput,
+        onChange,
+        escapeHtmlEntities,
+      } = Reactive;
+
+      // ── Task Manager ──────────────────────────────────────────────────────
+      const tasks = reactive({
+        list: [
+          { id: 1, text: "Learn Reactive", completed: true, priority: "high" },
+          {
+            id: 2,
+            text: "Build awesome apps",
+            completed: false,
+            priority: "medium",
+          },
+          { id: 3, text: "Share with team", completed: false, priority: "low" },
+        ],
+        filter: "all",
+      });
+      let taskId = 4;
+
+      const totalTasks = computed(() => tasks.list.length);
+      const pendingTasks = computed(
+        () => tasks.list.filter((t) => !t.completed).length,
+      );
+      const completedTasks = computed(
+        () => tasks.list.filter((t) => t.completed).length,
+      );
+      const progressPct = computed(() =>
+        tasks.list.length === 0
+          ? 0
+          : Math.round((completedTasks.value / tasks.list.length) * 100),
+      );
+      const filteredTasks = computed(() => {
+        if (tasks.filter === "pending")
+          return tasks.list.filter((t) => !t.completed);
+        if (tasks.filter === "completed")
+          return tasks.list.filter((t) => t.completed);
+        if (tasks.filter === "high")
+          return tasks.list.filter((t) => t.priority === "high");
+        return tasks.list;
+      });
+
+      bindText("#total-tasks", totalTasks);
+      bindText("#pending-tasks", pendingTasks);
+      bindText("#completed-tasks", completedTasks);
+      bindText("#task-count", () => tasks.list.length + " tasks");
+      bindText("#progress-text", () => progressPct.value + "%");
+      bindStyle("#progress-fill", "width", () => progressPct.value + "%");
+
+      bindClass("#filter-all", "active", () => tasks.filter === "all");
+      bindClass("#filter-pending", "active", () => tasks.filter === "pending");
+      bindClass(
+        "#filter-completed",
+        "active",
+        () => tasks.filter === "completed",
+      );
+      bindClass("#filter-high", "active", () => tasks.filter === "high");
+
+      render(
+        "#task-list",
+        () => {
+          const list = filteredTasks.value;
+          if (!list.length)
+            return '<div class="empty-tasks">No tasks found</div>';
+          return list
+            .map(
+              (task) =>
+                '<div class="task-item ' +
+                (task.completed ? "completed" : "") +
+                '">' +
+                '<input type="checkbox" ' +
+                (task.completed ? "checked" : "") +
+                ' onchange="toggleTask(' +
+                task.id +
+                ')" aria-label="Toggle task" />' +
+                '<span class="task-text">' +
+                escapeHtmlEntities(task.text) +
+                "</span>" +
+                '<span class="priority-badge priority-' +
+                task.priority +
+                '">' +
+                task.priority +
+                "</span>" +
+                '<button class="btn btn-danger" style="padding:0.2rem 0.5rem;font-size:0.75rem" onclick="deleteTask(' +
+                task.id +
+                ')">x</button>' +
+                "</div>",
+            )
+            .join("");
+        },
+        { trusted: true },
+      );
+
+      window.toggleTask = (id) => {
+        const t = tasks.list.find((x) => x.id === id);
+        if (t) t.completed = !t.completed;
+      };
+      window.deleteTask = (id) => {
+        const idx = tasks.list.findIndex((x) => x.id === id);
+        if (idx !== -1) tasks.list.splice(idx, 1);
+      };
+
+      function addTask() {
+        const input = document.getElementById("new-task");
+        const text = input.value.trim();
+        const priority = document.getElementById("task-priority").value;
+        if (text) {
+          tasks.list.push({ id: taskId++, text, completed: false, priority });
+          input.value = "";
+        }
+      }
+
+      onClick("#add-task", addTask);
+      onEnter("#new-task", addTask);
+
+      onClick("#filter-all", () => (tasks.filter = "all"));
+      onClick("#filter-pending", () => (tasks.filter = "pending"));
+      onClick("#filter-completed", () => (tasks.filter = "completed"));
+      onClick("#filter-high", () => (tasks.filter = "high"));
+
+      // ── Settings ──────────────────────────────────────────────────────────
+      const settings = reactive({
+        username: "",
+        themeColor: "#6366f1",
+        fontSize: 16,
+        darkMode: false,
+        notifications: true,
+      });
+
+      onInput("#username", (e) => (settings.username = e.target.value));
+      onInput("#theme-color", (e) => (settings.themeColor = e.target.value));
+      onInput("#font-size", (e) => (settings.fontSize = +e.target.value));
+      onChange("#dark-mode", (e) => (settings.darkMode = e.target.checked));
+      onChange(
+        "#notifications",
+        (e) => (settings.notifications = e.target.checked),
+      );
+
+      bindText("#font-size-value", () => settings.fontSize);
+
+      effect(() => {
+        document.getElementById("settings-json").textContent = JSON.stringify(
+          settings,
+          null,
+          2,
+        );
+      });
+      effect(() => {
+        document.body.style.fontSize = settings.fontSize + "px";
+      });
+
+      // ── Activity Log ──────────────────────────────────────────────────────
+      function logActivity(message) {
+        const el = document.getElementById("activity-log");
+        const time = new Date().toLocaleTimeString();
+        el.innerHTML = "[" + time + "] " + message + "\n" + el.innerHTML;
+      }
+
+      watch(totalTasks, (n, o) => logActivity("Tasks: " + o + " -> " + n));
+      watch(
+        () => settings.username,
+        (n, o) => {
+          if (n !== o)
+            logActivity(
+              'Username: "' +
+                (o || "(empty)") +
+                '" -> "' +
+                (n || "(empty)") +
+                '"',
+            );
+        },
+      );
+      watch(
+        () => settings.darkMode,
+        (n) => logActivity("Dark mode: " + (n ? "ON" : "OFF")),
+      );
+      watch(
+        () => progressPct.value,
+        (n, o) => {
+          if (n === 100 && o < 100) logActivity("All tasks completed!");
+        },
+      );
+
+      onClick(
+        "#clear-log",
+        () =>
+          (document.getElementById("activity-log").innerHTML =
+            "Log cleared..."),
+      );
+
+      // ── Batch Demo ────────────────────────────────────────────────────────
+      const batchState = reactive({ a: 0, b: 0, c: 0 });
+      let effectCount = 0;
+
+      effect(() => {
+        effectCount++;
+        document.getElementById("batch-a").textContent = batchState.a;
+        document.getElementById("batch-b").textContent = batchState.b;
+        document.getElementById("batch-c").textContent = batchState.c;
+        document.getElementById("effect-count").textContent = effectCount;
+      });
+
+      onClick("#update-no-batch", () => {
+        batchState.a++;
+        batchState.b++;
+        batchState.c++;
+        logActivity("No batch: 3 updates = 3 effect runs");
+      });
+
+      onClick("#update-batch", () => {
+        batch(() => {
+          batchState.a++;
+          batchState.b++;
+          batchState.c++;
+        });
+        logActivity("Batched: 3 updates = 1 effect run");
+      });
+
+      // ── Reset All ─────────────────────────────────────────────────────────
+      onClick("#reset-all", () => {
+        batch(() => {
+          tasks.list = [];
+          tasks.filter = "all";
+          Object.assign(settings, {
+            username: "",
+            themeColor: "#6366f1",
+            fontSize: 16,
+            darkMode: false,
+            notifications: true,
+          });
+          batchState.a = batchState.b = batchState.c = 0;
+        });
+        // sync form inputs back to defaults
+        document.getElementById("username").value = "";
+        document.getElementById("theme-color").value = "#6366f1";
+        document.getElementById("font-size").value = "16";
+        document.getElementById("dark-mode").checked = false;
+        document.getElementById("notifications").checked = true;
+        logActivity("All state reset");
+      });
+
+      logActivity("App initialized");
+    </script>
+  </body>
+</html>

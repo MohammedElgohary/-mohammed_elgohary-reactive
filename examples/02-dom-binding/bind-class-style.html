@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bindClass() &amp; bindStyle() · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+      .demo-box {
+        width: 100px;
+        height: 100px;
+        border: 2px solid var(--border);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0.5rem;
+        transition: all 0.3s;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border-radius: var(--r-sm);
+      }
+      .demo-box.active {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+      }
+      .demo-box.error {
+        background: var(--danger);
+        color: #fff;
+        border-color: var(--danger);
+      }
+      .demo-box.rounded {
+        border-radius: 50%;
+      }
+      .demo-box.shadow {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      }
+
+      .style-box {
+        width: 150px;
+        height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 600;
+        margin: 1rem 0;
+        transition: all 0.3s;
+        border-radius: var(--r-sm);
+      }
+      .progress-wrap {
+        width: 100%;
+        height: 28px;
+        background: var(--surface-2);
+        border-radius: 14px;
+        overflow: hidden;
+        margin: 0.75rem 0;
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), #a78bfa);
+        transition: width 0.3s;
+        border-radius: 14px;
+      }
+
+      .arena {
+        position: relative;
+        height: 180px;
+        background: var(--surface-2);
+        border-radius: var(--r-md);
+        overflow: hidden;
+        margin-top: 0.75rem;
+        border: 1px solid var(--border);
+      }
+      .mover {
+        position: absolute;
+        width: 48px;
+        height: 48px;
+        background: var(--primary);
+        border-radius: var(--r-sm);
+        transition: all 0.3s;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="bind-text.html">bindText()</a>
+        <a href="bind-input.html">bindInput()</a>
+        <a href="bind-class-style.html" class="active">bindClass/Style()</a>
+        <a href="bind-advanced.html">Advanced</a>
+        <a href="bind-unified.html">bind()</a>
+        <a href="security.html">Security</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <header class="page-header">
+        <h1>bindClass() &amp; bindStyle()</h1>
+        <p class="page-subtitle">
+          Toggle CSS classes and drive inline styles directly from reactive
+          state.
+        </p>
+      </header>
+
+      <div class="card">
+        <!-- 1. bindClass -->
+        <div class="section">
+          <div class="section-title">1. bindClass() — toggle classes</div>
+          <div class="section-desc">
+            Each class is bound to an independent boolean — they compose freely.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-secondary" id="toggle-active">Active</button>
+            <button class="btn btn-secondary" id="toggle-error">Error</button>
+            <button class="btn btn-secondary" id="toggle-rounded">
+              Rounded
+            </button>
+            <button class="btn btn-secondary" id="toggle-shadow">Shadow</button>
+          </div>
+          <div><div class="demo-box" id="class-box">Box</div></div>
+          <div class="output-box mt-sm">
+            <div class="stat-row">
+              <span class="stat-label">classes</span>
+              <span
+                id="out-classes"
+                style="font-family: monospace; font-size: 0.85rem"
+              ></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Selection list -->
+        <div class="section">
+          <div class="section-title">
+            2. Selection state across multiple elements
+          </div>
+          <div class="section-desc">
+            A single reactive value drives the active class across all items.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-secondary" id="sel-1">Select 1</button>
+            <button class="btn btn-secondary" id="sel-2">Select 2</button>
+            <button class="btn btn-secondary" id="sel-3">Select 3</button>
+            <button class="btn btn-secondary" id="sel-none">None</button>
+          </div>
+          <div>
+            <div class="demo-box" id="item-1">1</div>
+            <div class="demo-box" id="item-2">2</div>
+            <div class="demo-box" id="item-3">3</div>
+          </div>
+        </div>
+
+        <!-- 3. bindStyle -->
+        <div class="section">
+          <div class="section-title">
+            3. bindStyle() — dynamic inline styles
+          </div>
+          <div class="section-desc">
+            Bind individual CSS properties to reactive values — sliders update
+            the box in real time.
+          </div>
+          <div class="btn-group">
+            <label class="input-label"
+              >Width
+              <input type="range" id="sl-width" min="50" max="300" value="150"
+            /></label>
+            <label class="input-label"
+              >Height
+              <input type="range" id="sl-height" min="50" max="300" value="150"
+            /></label>
+            <label class="input-label"
+              >BG
+              <input
+                type="color"
+                id="sl-color"
+                value="#6366f1"
+                style="
+                  width: 36px;
+                  height: 28px;
+                  border: none;
+                  background: none;
+                  cursor: pointer;
+                "
+            /></label>
+            <label class="input-label"
+              >Radius
+              <input type="range" id="sl-radius" min="0" max="75" value="4"
+            /></label>
+          </div>
+          <div class="style-box" id="style-box" style="background: #6366f1">
+            Resize Me!
+          </div>
+        </div>
+
+        <!-- 4. Progress bar -->
+        <div class="section">
+          <div class="section-title">4. Progress bar with bindStyle()</div>
+          <div class="section-desc">
+            Animate a progress bar by binding its <code>width</code> style to a
+            reactive percentage.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-secondary" id="p0">0%</button>
+            <button class="btn btn-secondary" id="p25">25%</button>
+            <button class="btn btn-secondary" id="p50">50%</button>
+            <button class="btn btn-secondary" id="p75">75%</button>
+            <button class="btn btn-primary" id="p100">100%</button>
+            <button class="btn btn-secondary" id="p-anim">Animate</button>
+          </div>
+          <div class="progress-wrap">
+            <div
+              class="progress-fill"
+              id="progress-bar"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div
+            style="
+              text-align: center;
+              font-size: 1.5rem;
+              font-weight: 700;
+              color: var(--primary);
+            "
+          >
+            <span id="out-progress">0</span>%
+          </div>
+        </div>
+
+        <!-- 5. Conditional styling -->
+        <div class="section">
+          <div class="section-title">5. Conditional styling</div>
+          <div class="section-desc">
+            Derive styles from value ranges — the color and label update as the
+            temperature changes.
+          </div>
+          <div class="btn-group">
+            <label class="input-label"
+              >Temperature
+              <input
+                class="input"
+                type="number"
+                id="in-temp"
+                value="20"
+                min="-20"
+                max="50"
+                style="width: 80px"
+              />
+              °C
+            </label>
+          </div>
+          <div
+            class="style-box"
+            id="temp-box"
+            style="width: 200px; background: #4caf50"
+          >
+            <span id="out-temp">20°C</span>
+          </div>
+          <div
+            id="out-temp-label"
+            style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--muted)"
+          ></div>
+        </div>
+
+        <!-- 6. Position animation -->
+        <div class="section">
+          <div class="section-title">6. Position animation</div>
+          <div class="section-desc">
+            Drive <code>left</code> and <code>top</code> styles from reactive
+            coordinates.
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-secondary" id="mv-left">← Left</button>
+            <button class="btn btn-secondary" id="mv-right">Right →</button>
+            <button class="btn btn-secondary" id="mv-up">↑ Up</button>
+            <button class="btn btn-secondary" id="mv-down">Down ↓</button>
+            <button class="btn btn-primary" id="mv-center">Center</button>
+          </div>
+          <div class="arena"><div id="mover" class="mover"></div></div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../../dist/reactive.iife.min.js"></script>
+    <script>
+      const {
+        reactive,
+        bindClass,
+        bindStyle,
+        bindText,
+        bindInput,
+        onClick,
+        effect,
+      } = Reactive;
+
+      // 1. bindClass
+      const cls = reactive({
+        active: false,
+        error: false,
+        rounded: false,
+        shadow: false,
+      });
+
+      bindClass("#class-box", "active", () => cls.active);
+      bindClass("#class-box", "error", () => cls.error);
+      bindClass("#class-box", "rounded", () => cls.rounded);
+      bindClass("#class-box", "shadow", () => cls.shadow);
+
+      bindText("#out-classes", () => {
+        const list = ["demo-box"];
+        if (cls.active) list.push("active");
+        if (cls.error) list.push("error");
+        if (cls.rounded) list.push("rounded");
+        if (cls.shadow) list.push("shadow");
+        return list.join(" ");
+      });
+
+      onClick("#toggle-active", () => (cls.active = !cls.active));
+      onClick("#toggle-error", () => (cls.error = !cls.error));
+      onClick("#toggle-rounded", () => (cls.rounded = !cls.rounded));
+      onClick("#toggle-shadow", () => (cls.shadow = !cls.shadow));
+
+      // 2. Selection
+      const sel = reactive({ id: 0 });
+      bindClass("#item-1", "active", () => sel.id === 1);
+      bindClass("#item-2", "active", () => sel.id === 2);
+      bindClass("#item-3", "active", () => sel.id === 3);
+      onClick("#sel-1", () => (sel.id = 1));
+      onClick("#sel-2", () => (sel.id = 2));
+      onClick("#sel-3", () => (sel.id = 3));
+      onClick("#sel-none", () => (sel.id = 0));
+
+      // 3. bindStyle
+      const box = reactive({
+        width: 150,
+        height: 150,
+        color: "#6366f1",
+        radius: 4,
+      });
+      bindStyle("#style-box", "width", () => box.width + "px");
+      bindStyle("#style-box", "height", () => box.height + "px");
+      bindStyle("#style-box", "background", () => box.color);
+      bindStyle("#style-box", "border-radius", () => box.radius + "px");
+
+      bindInput("#sl-width", {
+        get value() {
+          return box.width;
+        },
+        set value(v) {
+          box.width = +v;
+        },
+        subscribe: () => () => {},
+      });
+      bindInput("#sl-height", {
+        get value() {
+          return box.height;
+        },
+        set value(v) {
+          box.height = +v;
+        },
+        subscribe: () => () => {},
+      });
+      bindInput("#sl-color", {
+        get value() {
+          return box.color;
+        },
+        set value(v) {
+          box.color = v;
+        },
+        subscribe: () => () => {},
+      });
+      bindInput("#sl-radius", {
+        get value() {
+          return box.radius;
+        },
+        set value(v) {
+          box.radius = +v;
+        },
+        subscribe: () => () => {},
+      });
+
+      // 4. Progress bar
+      const prog = reactive({ value: 0 });
+      bindStyle("#progress-bar", "width", () => prog.value + "%");
+      bindText("#out-progress", () => prog.value);
+
+      onClick("#p0", () => (prog.value = 0));
+      onClick("#p25", () => (prog.value = 25));
+      onClick("#p50", () => (prog.value = 50));
+      onClick("#p75", () => (prog.value = 75));
+      onClick("#p100", () => (prog.value = 100));
+      onClick("#p-anim", () => {
+        prog.value = 0;
+        const iv = setInterval(() => {
+          prog.value += 2;
+          if (prog.value >= 100) clearInterval(iv);
+        }, 50);
+      });
+
+      // 5. Conditional styling
+      const temp = reactive({ value: 20 });
+      bindInput("#in-temp", temp);
+      bindText("#out-temp", () => temp.value + "°C");
+      bindStyle("#temp-box", "background", () => {
+        const t = temp.value;
+        if (t < 0) return "#00bcd4";
+        if (t < 15) return "#2196f3";
+        if (t < 25) return "#4caf50";
+        if (t < 35) return "#ff9800";
+        return "#f44336";
+      });
+      bindText("#out-temp-label", () => {
+        const t = temp.value;
+        if (t < 0) return "Freezing";
+        if (t < 15) return "Cold";
+        if (t < 25) return "Comfortable";
+        if (t < 35) return "Warm";
+        return "Hot";
+      });
+
+      // 6. Position animation
+      const pos = reactive({ x: 75, y: 66 });
+      bindStyle("#mover", "left", () => pos.x + "px");
+      bindStyle("#mover", "top", () => pos.y + "px");
+
+      onClick("#mv-left", () => (pos.x = Math.max(0, pos.x - 60)));
+      onClick("#mv-right", () => (pos.x = Math.min(252, pos.x + 60)));
+      onClick("#mv-up", () => (pos.y = Math.max(0, pos.y - 60)));
+      onClick("#mv-down", () => (pos.y = Math.min(132, pos.y + 60)));
+      onClick("#mv-center", () => {
+        const arena = document.querySelector(".arena");
+        pos.x = Math.round((arena.offsetWidth - 48) / 2);
+        pos.y = Math.round((arena.offsetHeight - 48) / 2);
+      });
+    </script>
+  </body>
+</html>
