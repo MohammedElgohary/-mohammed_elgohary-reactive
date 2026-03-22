@@ -99,7 +99,7 @@ First stable release of Reactive with core features, security, and comprehensive
 
 **Node.js Support:**
 
-- Node.js 16.x or higher
+- Node.js 18.x or higher
 - NPM 7.x or higher
 
 ---
