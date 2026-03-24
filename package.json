@@ -1,6 +1,6 @@
 {
   "name": "@mohammed_elgohary/reactive",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "A lightweight, framework-agnostic reactive state management system for vanilla JavaScript",
   "type": "module",
   "main": "./dist/reactive.js",

@@ -1,4 +1,4 @@
-# Reactive
+﻿# Reactive
 
 Lightweight, framework-agnostic reactive state management. Zero dependencies.
 
@@ -29,7 +29,7 @@ state.count++; // triggers effect automatically
 
 #### `reactive(value)`
 
-Creates reactive state. Objects are deeply reactive — all nested properties are tracked automatically.
+Creates reactive state. Objects are deeply reactive — all nested properties are tracked automatically. Supports plain objects, arrays, `Map`, `Set`, `Date`, `RegExp`, typed arrays, and `ArrayBuffer`.
 
 ```typescript
 const state = reactive({ count: 0, name: "John" });
@@ -70,12 +70,15 @@ const user = computedAsync(
     const id = state.userId; // sync read — tracked as dependency
     return fetch(`/api/users/${id}`).then((r) => r.json());
   },
-  { initialValue: null },
+  {
+    initialValue: null,
+    onError: (err) => console.error(err), // optional error handler
+  },
 );
 
 user.value; // resolved data (or initialValue while pending)
 user.loading; // true while running
-user.error; // Error | null
+user.error; // last thrown error, or null
 
 user.subscribe(() => {
   /* called on any state change */
@@ -83,17 +86,26 @@ user.subscribe(() => {
 user.dispose(); // stop and clean up
 ```
 
+Options:
+
+```typescript
+{
+  initialValue?: T        // value before first resolution (default: undefined)
+  onError?: (err) => void // called when the async function throws
+}
+```
+
 #### `effect(fn, options?)`
 
-Runs `fn` immediately and re-runs when dependencies change. Returns a cleanup/stop function. `fn` can return a cleanup function that runs before the next execution.
+Runs `fn` immediately and re-runs when dependencies change. Returns a stop function. `fn` can return a cleanup function that runs before the next execution and also when the effect is stopped.
 
 ```typescript
 const stop = effect(() => {
   console.log(state.count);
-  return () => console.log("cleanup");
+  return () => console.log("cleanup"); // runs before re-run and on stop()
 });
 
-stop(); // stop the effect
+stop(); // stop the effect and run final cleanup
 
 // handle errors instead of logging to console
 effect(() => riskyOperation(), { onError: (err) => reportError(err) });
@@ -112,15 +124,29 @@ const result = batch(() => {
 }); // one notification instead of three
 ```
 
+#### `isBatchingUpdates()`
+
+Returns `true` while inside a `batch()` call.
+
+```typescript
+isBatchingUpdates(); // false
+batch(() => {
+  isBatchingUpdates(); // true
+});
+```
+
 #### `watch(source, callback, options?)`
 
-Observes a reactive source and calls `callback(newValue, oldValue)` on change. Returns a stop function.
+Observes a reactive source and calls `callback(newValue, oldValue)` on change. Returns a stop function. The callback can return a cleanup function that runs before the next invocation.
 
 ```typescript
 // Getter function
 const stop = watch(
   () => state.count,
-  (newVal, oldVal) => console.log(newVal, oldVal),
+  (newVal, oldVal) => {
+    console.log(newVal, oldVal);
+    return () => console.log("cleanup before next call");
+  },
   { immediate: true }, // run callback immediately on setup
 );
 
@@ -133,9 +159,18 @@ watch([() => state.a, () => state.b], ([newA, newB], [oldA, oldB]) =>
 watch(state, "count", (newVal, oldVal) => console.log(newVal));
 ```
 
+Options:
+
+```typescript
+{
+  immediate?: boolean // run callback immediately with current value on setup
+  deep?: boolean      // reserved for future use — currently has no effect
+}
+```
+
 #### `watchMultiple(sources, callback, options?)`
 
-Watch multiple sources at once.
+Watch multiple sources at once. Callback can return a cleanup function.
 
 ```typescript
 watchMultiple([() => state.a, () => state.b], ([newA, newB], [oldA, oldB]) =>
@@ -145,7 +180,7 @@ watchMultiple([() => state.a, () => state.b], ([newA, newB], [oldA, oldB]) =>
 
 #### `watchProperty(obj, key, callback, options?)`
 
-Watch a single property on a reactive object.
+Watch a single property on a reactive object. Callback can return a cleanup function.
 
 ```typescript
 watchProperty(state, "count", (newVal, oldVal) => console.log(newVal));
@@ -168,6 +203,11 @@ bindHTML("#el", () => trustedHtml, { trusted: true }); // skip sanitization
 // Attribute (blocks dangerous attrs like onclick, formaction)
 bindAttr("#el", "disabled", () => state.count === 0);
 bindAttr("#el", "href", () => state.url); // auto-validates URLs
+// escape hatches (use with caution)
+bindAttr("#el", "href", () => state.url, { allowDangerousUrls: true });
+bindAttr("#el", "formaction", () => state.url, {
+  allowDangerousAttributes: true,
+});
 
 // CSS class toggle
 bindClass("#el", "active", () => state.isActive);
@@ -175,12 +215,12 @@ bindClass("#el", "active", () => state.isActive);
 // Single inline style
 bindStyle("#el", "color", () => (state.isError ? "red" : "black"));
 
-// Multiple styles at once
+// Multiple styles at once — record of getter functions
 bindStyles("#el", {
   "background-color": () => state.bg,
   "font-size": () => `${state.size}px`,
 });
-// or with a reactive object
+// or pass a reactive object directly (values are read reactively)
 bindStyles("#el", state.styles);
 
 // Property binding (blocks innerHTML, outerHTML, srcdoc)
@@ -188,7 +228,8 @@ bindProp("#el", "scrollTop", () => state.scroll);
 
 // Two-way input binding — primitive reactive
 const name = reactive("");
-bindInput("#input", name); // works with text, checkbox, radio, select, textarea, file, date
+bindInput("#input", name); // works with text, checkbox, radio, select, textarea, file,
+// date, datetime-local, month, time, week, number, range
 
 // Two-way input binding — object property (no .value wrapper needed)
 const state = reactive({ name: "", age: 0 });
@@ -206,7 +247,7 @@ render("#list", () => items.map((i) => `<li>${i}</li>`).join(""));
 render("#app", () => template(), { trusted: true });
 
 // Unified bind — auto-detects type
-bind("#el", () => state.text); // text or HTML (auto-detected)
+bind("#el", () => state.text); // text or HTML (auto-detected by content)
 bind("#el", "class:active", () => state.on); // class
 bind("#el", "style:color", () => state.color); // style
 bind("#el", "styles", state.styles); // multiple styles
@@ -255,12 +296,12 @@ onEscape("#modal", () => close());
 
 ```typescript
 {
-  preventDefault?: boolean
-  stopPropagation?: boolean
-  stopImmediatePropagation?: boolean
-  capture?: boolean
-  once?: boolean
-  passive?: boolean
+  preventDefault?: boolean              // call e.preventDefault() automatically
+  stopPropagation?: boolean             // call e.stopPropagation() automatically
+  stopImmediatePropagation?: boolean    // call e.stopImmediatePropagation() automatically
+  capture?: boolean                     // use capture phase instead of bubble
+  once?: boolean                        // remove listener after first invocation
+  passive?: boolean                     // hint that handler won't call preventDefault (improves scroll perf)
 }
 ```
 
@@ -270,14 +311,16 @@ onEscape("#modal", () => close());
 
 ```typescript
 ref(value); // alias for reactive()
-readonly(source); // read-only wrapper — warns on write attempts
+readonly(source); // read-only wrapper around a reactive/computed — warns on write
 readonlyObject(obj); // Proxy that throws on write/delete
 markRaw(obj); // exclude object from reactivity
 isRaw(obj); // check if object is marked raw
 toRaw(reactive); // extract raw value from a primitive reactive wrapper
 shallowReactive(obj); // only top-level properties are reactive (nested objects are raw)
-isReactive(value); // true if value is a reactive object
+isReactive(value); // true if value is a reactive primitive wrapper
 isComputed(value); // true if value is a computed
+isBatchingUpdates(); // true while inside a batch() call
+scheduleNotification(cb); // schedule a notification callback, respects batching
 ```
 
 ---
@@ -294,16 +337,11 @@ logTrackedReactive(); // print all tracked reactives to console
 clearDebugTracking(); // clear all tracked reactives
 ```
 
----
+           // returns false for javascript:, vbscript:, data:text/html
 
-### Security Utilities
-
-```typescript
-escapeHtmlEntities(str); // convert <, >, &, " etc. to HTML entities
-sanitizeHtmlContent(html); // remove scripts/event handlers, keep safe HTML
-isUrlSafe(url); // returns false for javascript:, vbscript:, data:text/html
 configureReactiveSecurity({ logWarnings, throwOnViolation });
-```
+
+````
 
 ---
 
@@ -318,8 +356,18 @@ configureReactiveSecurity({ logWarnings, throwOnViolation });
   bindText("#counter", () => state.count);
   onClick("#btn", () => state.count++);
 </script>
-```
+````
 
 ## License
 
 MIT
+
+---
+
+### Security Utilities
+
+```typescript
+escapeHtmlEntities(str); // convert <, >, &, " etc. to HTML entities
+sanitizeHtmlContent(html); // remove scripts/event handlers, keep safe HTML
+isUrlSafe(url);
+```

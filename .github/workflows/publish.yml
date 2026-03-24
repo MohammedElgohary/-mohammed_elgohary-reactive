@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to publish (e.g., 1.0.1) — must be higher than current package.json version"
+        description: "Version to publish (e.g., 1.0.2) — must be higher than current published version"
         required: true
         type: string
 
@@ -49,16 +49,30 @@ jobs:
           fi
 
       - name: Publish to NPM
+        id: publish_npm
+        continue-on-error: true
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish to GitHub Packages
+      - name: NPM publish result
         run: |
-          echo '//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
-          npm publish --registry=https://npm.pkg.github.com --access public
+          if [ "${{ steps.publish_npm.outcome }}" = "failure" ]; then
+            echo "⚠️ NPM publish failed (version may already exist) — continuing to GitHub Packages"
+          else
+            echo "✅ Published to NPM successfully"
+          fi
+
+      - name: Publish to GitHub Packages
+        run: npm publish --registry=https://npm.pkg.github.com --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fail if NPM publish failed
+        if: steps.publish_npm.outcome == 'failure'
+        run: |
+          echo "❌ NPM publish failed — check logs above"
+          exit 1
 
       - name: Create GitHub Release (manual trigger only)
         if: github.event_name == 'workflow_dispatch'
