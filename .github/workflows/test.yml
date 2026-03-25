@@ -71,7 +71,7 @@ jobs:
       - name: Check bundle sizes
         run: |
           echo "Bundle sizes:"
-          ls -lh dist/reactive.js dist/reactive.min.js dist/reactive.iife.js dist/reactive.iife.min.js dist/reactive.minimal.js dist/reactive.minimal.iife.js
+          ls -lh dist/reactive.js dist/reactive.min.js dist/reactive.iife.min.js dist/reactive.minimal.js dist/reactive.minimal.iife.js
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
