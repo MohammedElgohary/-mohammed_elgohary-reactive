@@ -8,7 +8,6 @@ import {
   bindStyle,
   bindProp,
   bindStyles,
-  bindInput,
   bindMultiple,
   render,
   sanitizeHtmlContent,

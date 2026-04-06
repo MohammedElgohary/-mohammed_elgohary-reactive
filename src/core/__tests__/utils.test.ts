@@ -175,7 +175,7 @@ describe("utils", () => {
       expect(isRaw(obj)).toBe(true);
 
       // Even if we make it reactive, the marker persists
-      const reactiveObj = reactive(obj);
+      reactive(obj);
       expect(isRaw(obj)).toBe(true);
     });
 

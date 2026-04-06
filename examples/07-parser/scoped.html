@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Parser · Scoped Updates · Reactive</title>
     <link rel="stylesheet" href="../styles.css" />
-    <script src="../dist/reactive.iife.min.js"></script>
+    <script src="../dist/reactive.iife.js"></script>
     <style>
       .scope-box {
         border: 2px solid var(--border);
@@ -60,9 +60,11 @@
       <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
       <div class="topbar-links">
         <a href="index.html">Overview</a>
+        <a href="features.html">Features</a>
         <a href="counter.html">Counter</a>
         <a href="form.html">Form</a>
         <a href="list.html">List</a>
+        <a href="advanced.html">Advanced</a>
         <a href="scoped.html" class="active">Scoped</a>
       </div>
     </nav>
@@ -249,14 +251,14 @@
     </main>
 
     <script>
-      const { reactive, effect, mount } = Reactive;
-      const counter = reactive({ count: 0 });
-      const user = reactive({
+      // Zero-config: use 'var' to automatically register state on window
+      var { reactive, effect } = Reactive;
+      var counter = reactive({ count: 0 });
+      var user = reactive({
         name: "Mohammed Ali",
         age: 25,
         role: "Developer",
       });
-      mount({ counter, user });
 
       function logUpdate(stateName, detail) {
         const log = document.getElementById("log");

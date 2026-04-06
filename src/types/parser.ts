@@ -15,16 +15,6 @@ export type InterpolationPart =
  * // Given:
  * const counter = reactive({ count: 0 });
  * const user    = reactive({ name: "Ali" });
- * // Scope is: { counter, user }
+ * scope is: { counter, user }
  */
-export type TemplateScope = Record<string, Record<string, any>>;
-
-/**
- * A compiled expression function — takes a scope and returns a value.
- */
-export type CompiledExpression = (scope: TemplateScope) => any;
-
-/**
- * A compiled statement function — takes a scope and optional event, returns void.
- */
-export type CompiledStatement = (scope: TemplateScope, event?: Event) => void;
+export type TemplateScope = Record<string, any>;

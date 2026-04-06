@@ -1,4 +1,4 @@
-﻿# Reactive
+# Reactive
 
 Lightweight, framework-agnostic reactive state management. Zero dependencies.
 
@@ -242,6 +242,8 @@ onEscape("#modal", () => close());
   capture?: boolean
   once?: boolean
   passive?: boolean
+  self?: boolean
+  debounce?: number
 }
 ```
 
@@ -290,7 +292,7 @@ configureReactiveSecurity({ logWarnings, throwOnViolation });
 ## Browser (No Build Step)
 
 ```html
-<script src="https://unpkg.com/@mohammed_elgohary/reactive/dist/reactive.iife.min.js"></script>
+<script src="https://unpkg.com/@mohammed_elgohary/reactive/dist/reactive.iife.js"></script>
 <script>
   const { reactive, mount, bindText, onClick } = Reactive;
 
@@ -309,7 +311,7 @@ The library automatically injects `body { opacity: 0 }` on load and adds `body.r
 Write reactive UIs directly in HTML. No manual wiring.
 
 ```html
-<script src="reactive.iife.min.js"></script>
+<script src="reactive.iife.js"></script>
 
 <body>
   <p>{{ counter.count }}</p>
@@ -317,31 +319,99 @@ Write reactive UIs directly in HTML. No manual wiring.
   <input :model="user.name" />
   <p :show="counter.count > 0">Positive!</p>
 
+  <!-- Event Modifiers -->
+  <form @submit.prevent="save">
+    <button @click.stop="doSomething">Stop Propagation</button>
+    <div @click.self="close">Only clicks on me</div>
+    <input @input.debounce.500="search" placeholder="Search..." />
+    <input
+      :model.debounce.300="filters.search"
+      placeholder="Debounced model..."
+    />
+  </form>
+
   <script>
-    const { reactive, mount } = Reactive;
+    const { reactive } = Reactive;
     const counter = reactive({ count: 0 });
     const user = reactive({ name: "Ali" });
-    mount({ counter, user });
+    // mount() is called automatically on DOMContentLoaded
   </script>
 </body>
 ```
 
+### Zero-config (How it works)
+
+The library automatically detects `reactive()` states defined as window globals. **Note: You must use `var` instead of `const` or `let` in global script tags for this automatic discovery to work, as `const`/`let` do not attach to the `window` object.**
+
+```javascript
+<script>
+  // Works with zero-config
+  var counter = reactive({ count: 0 });
+</script>
+
+<script>
+  // Does NOT work with zero-config (not on window)
+  const user = reactive({ name: "Ali" });
+
+  // You must call mount() explicitly for const/let or modules
+  mount({ user });
+</script>
+```
+
+It schedules a microtask to:
+
+1. Scan the global scope for reactive objects.
+2. Register them by their variable names.
+3. Parse the DOM and bind expressions.
+
+This allows you to "just use" `reactive()` without any manual wiring for simple scripts.
+
 ### Syntax
 
-| Syntax               | Description                               |
-| -------------------- | ----------------------------------------- |
-| `{{ expr }}`         | Text interpolation                        |
-| `:attr="expr"`       | Attribute binding                         |
-| `:class="expr"`      | Class binding (string or `{ cls: bool }`) |
-| `:style="expr"`      | Style binding (object)                    |
-| `:show="expr"`       | Toggle visibility                         |
-| `:html="expr"`       | Inner HTML (sanitized)                    |
-| `:model="state.key"` | Two-way input binding                     |
-| `@event="statement"` | Event handler (`$event` available)        |
+| Syntax                | Description                               |
+| --------------------- | ----------------------------------------- |
+| `{{ expr }}`          | Text interpolation                        |
+| `:attr="expr"`        | Attribute binding                         |
+| `:class="expr"`       | Class binding (string or `{ cls: bool }`) |
+| `:style="expr"`       | Style binding (object)                    |
+| `:show="expr"`        | Toggle visibility                         |
+| `:html="expr"`        | Inner HTML (sanitized)                    |
+| `:model="state.key"`  | Two-way input binding                     |
+| `:if="expr"`          | Conditional rendering                     |
+| `:else`               | Else for conditional rendering            |
+| `:for="item in list"` | List rendering                            |
+| `@event="statement"`  | Event handler (`$event` available)        |
+| `@event.prevent`      | Call `e.preventDefault()`                 |
+| `@event.stop`         | Call `e.stopPropagation()`                |
+| `@event.self`         | Only trigger if `e.target` is the element |
+| `@event.once`         | Trigger once and remove                   |
+| `@event.debounce`     | Debounce (default 300ms)                  |
+| `@event.debounce.500` | Debounce with custom delay (ms)           |
+| `:model.debounce.300` | Debounced two-way binding                 |
+| `:model.number`       | Automatically cast input to number        |
+| `:model.trim`         | Automatically trim whitespace             |
+| `@keydown.enter`      | Trigger only on Enter key                 |
+| `@keydown.esc`        | Trigger only on Escape key                |
+| `@event.capture`      | Use capture phase                         |
+| `@event.passive`      | Passive event listener                    |
+
+### Performance
+
+- **Targeted Updates**: Only the specific properties referenced in an expression are tracked. Changing `state.a` will not re-evaluate expressions that only reference `state.b`.
+- **Live DOM**: The parser automatically detects and binds dynamically added elements using `MutationObserver`.
+- **Pre-compiled Regexes**: State name detection is optimized with pre-compiled regular expressions.
+- **TreeWalker**: Efficient DOM traversal using native browser APIs.
+
+### Security
+
+- **Sandbox**: Expressions are executed in a sandboxed environment that blocks access to sensitive globals like `window`, `document`, `fetch`, and `eval`.
+- **Obfuscation**: Internal implementation details (like scope attributes and variable names) are randomized at runtime to prevent tampering.
+- **Sanitization**: `:html` binding automatically sanitizes content to prevent XSS.
+- **URL Validation**: Attribute bindings for URLs (like `href` and `src`) are validated by default.
 
 ### mount({ name: state, ... })
 
-Registers states and parses the DOM. Only nodes referencing a changed state re-evaluate.
+Explicitly register states and parse a specific root element. Recommended for bundlers where states are not global.
 
 ```javascript
 const counter = reactive({ count: 0 });
@@ -360,18 +430,17 @@ stop(); // tear down bindings
 
 ### unmount()
 
-Tears down all auto-mounted bindings.
+Tears down all active bindings and disconnects observers. Useful for SPA navigation or testing.
 
 ---
 
 ## Bundle Sizes
 
-| Build                       | Size (min+gzip) | Use case               |
-| --------------------------- | --------------- | ---------------------- |
-| `reactive.iife.min.js`      | ~7.1KB          | Browser, full features |
-| `reactive.minimal.iife.js`  | ~5.2KB          | Browser, core only     |
-| `reactive.min.js` (ESM)     | ~8.8KB          | Bundler, full features |
-| `reactive.minimal.js` (ESM) | ~6.5KB          | Bundler, core only     |
+| Build                   | Size (min+gzip) | Use case              |
+| ----------------------- | --------------- | --------------------- |
+| `reactive.iife.js`      | ~8.4KB          | Browser (Direct tag)  |
+| `reactive.min.js` (ESM) | ~10.6KB         | Bundler (Production)  |
+| `reactive.js` (ESM)     | ~12.7KB         | Bundler (Development) |
 
 ---
 

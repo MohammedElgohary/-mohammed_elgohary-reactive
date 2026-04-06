@@ -20,3 +20,7 @@ export interface EffectOptions {
   /** Called when the effect throws an error instead of logging to console */
   onError?: (error: unknown) => void;
 }
+
+export interface ReactiveOptions {
+  /** Reserved for future use */
+}

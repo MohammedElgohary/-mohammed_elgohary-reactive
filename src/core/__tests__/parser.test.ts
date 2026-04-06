@@ -3,6 +3,7 @@ import { parse, autoMount, unmount } from "../parser";
 import { reactive } from "../reactive";
 import { clearRegistry, registerState } from "../registry";
 import { clearExpressionCache } from "../expression";
+import { SCOPE_ATTR } from "../constants";
 
 // jsdom is configured in vitest.config.ts (environment: "jsdom")
 
@@ -358,7 +359,7 @@ describe("data-scope auto-stamping", () => {
     const counter = reactive({ count: 0 });
     const root = html(`<p :show="counter.count > 0">text</p>`);
     parse(root, { counter });
-    expect(root.querySelector("p")!.getAttribute("data-scope")).toBe("counter");
+    expect(root.querySelector("p")!.getAttribute(SCOPE_ATTR)).toBe("counter");
   });
 
   it("stamps multiple state names when node references both", () => {
@@ -366,7 +367,7 @@ describe("data-scope auto-stamping", () => {
     const user = reactive({ name: "Ali" });
     const root = html(`<p :show="counter.count > 0">{{ user.name }}</p>`);
     parse(root, { counter, user });
-    const scope = root.querySelector("p")!.getAttribute("data-scope") ?? "";
+    const scope = root.querySelector("p")!.getAttribute(SCOPE_ATTR) ?? "";
     expect(scope).toContain("counter");
     expect(scope).toContain("user");
   });
@@ -375,7 +376,7 @@ describe("data-scope auto-stamping", () => {
     const counter = reactive({ count: 0 });
     const root = html(`<p>static text</p>`);
     parse(root, { counter });
-    expect(root.querySelector("p")!.hasAttribute("data-scope")).toBe(false);
+    expect(root.querySelector("p")!.hasAttribute(SCOPE_ATTR)).toBe(false);
   });
 
   it("merges data-scope when parse() is called again with a different scope", () => {
@@ -385,11 +386,11 @@ describe("data-scope auto-stamping", () => {
 
     // First parse — only counter in scope
     parse(root, { counter });
-    expect(root.querySelector("p")!.getAttribute("data-scope")).toBe("counter");
+    expect(root.querySelector("p")!.getAttribute(SCOPE_ATTR)).toBe("counter");
 
     // Second parse — only user in scope; must merge, not replace
     parse(root, { user });
-    const scope = root.querySelector("p")!.getAttribute("data-scope") ?? "";
+    const scope = root.querySelector("p")!.getAttribute(SCOPE_ATTR) ?? "";
     expect(scope).toContain("counter");
     expect(scope).toContain("user");
   });
@@ -400,7 +401,7 @@ describe("data-scope auto-stamping", () => {
     parse(root, { counter });
     parse(root, { counter });
     // "counter" must appear exactly once
-    const scope = root.querySelector("p")!.getAttribute("data-scope") ?? "";
+    const scope = root.querySelector("p")!.getAttribute(SCOPE_ATTR) ?? "";
     expect(scope.split(" ").filter((s) => s === "counter").length).toBe(1);
   });
 });
@@ -518,10 +519,8 @@ describe("performance characteristics", () => {
     expect(root.querySelector("#u")!.textContent).toBe("Sara");
 
     // data-scope confirms each node is bound to only its own state
-    expect(root.querySelector("#c")!.getAttribute("data-scope")).toBe(
-      "counter",
-    );
-    expect(root.querySelector("#u")!.getAttribute("data-scope")).toBe("user");
+    expect(root.querySelector("#c")!.getAttribute(SCOPE_ATTR)).toBe("counter");
+    expect(root.querySelector("#u")!.getAttribute(SCOPE_ATTR)).toBe("user");
   });
 
   it("handles a large number of nodes without throwing", () => {
@@ -569,7 +568,7 @@ describe("edge cases", () => {
     const root = html(`<p>{{ counter.value }}</p>`);
     parse(root, { count, counter });
     // Only 'counter' scope should be stamped, not 'count'
-    const scope = root.querySelector("p")!.getAttribute("data-scope") ?? "";
+    const scope = root.querySelector("p")!.getAttribute(SCOPE_ATTR) ?? "";
     expect(scope).toBe("counter");
     expect(scope).not.toContain("count ");
   });

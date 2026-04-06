@@ -498,7 +498,7 @@ describe("bindInput - Comprehensive Input Type Tests", () => {
       option2.selected = true;
       option3.selected = true;
       select.dispatchEvent(new Event("input"));
-      expect((value as any).value).toEqual(["option2", "option3"]);
+      expect(Array.from(value)).toEqual(["option2", "option3"]);
     });
 
     it("should handle null/undefined for select", () => {

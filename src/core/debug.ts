@@ -6,13 +6,15 @@ import type { Reactive, Computed } from "../types";
 
 let debugEnabled = false;
 // Use Map instead of WeakMap to allow iteration
-const trackedReactive = new Map<Reactive<any> | Computed<any>, {
-  type: "reactive" | "computed";
-  subscribers: number;
-  value: any;
-  history: Array<{ value: any; timestamp: number }>;
-  originalSubscribe?: (callback: () => void) => () => void;
-}>();
+const trackedReactive = new Map<
+  Reactive<any> | Computed<any>,
+  {
+    type: "reactive" | "computed";
+    subscribers: number;
+    value: any;
+    history: Array<{ value: any; timestamp: number }>;
+  }
+>();
 
 /**
  * Enable or disable debug mode
@@ -33,7 +35,7 @@ export function isDebugEnabled(): boolean {
  */
 export function trackReactive<T>(
   reactive: Reactive<T> | Computed<T>,
-  type: "reactive" | "computed" = "reactive"
+  type: "reactive" | "computed" = "reactive",
 ): void {
   if (!debugEnabled) return;
 
@@ -48,7 +50,6 @@ export function trackReactive<T>(
     subscribers: 0,
     value: reactive.value,
     history: [{ value: reactive.value, timestamp: Date.now() }],
-    originalSubscribe: reactive.subscribe.bind(reactive),
   };
 
   trackedReactive.set(reactive, info);
@@ -72,7 +73,6 @@ export function trackReactive<T>(
       Object.defineProperty(reactive, "value", {
         get: descriptor.get,
         set: (newValue: T) => {
-          const oldValue = info.value;
           originalSetter.call(reactive, newValue);
           info.value = newValue;
           info.history.push({ value: newValue, timestamp: Date.now() });
@@ -90,9 +90,7 @@ export function trackReactive<T>(
 /**
  * Get debug info for a reactive value
  */
-export function getDebugInfo<T>(
-  reactive: Reactive<T> | Computed<T>
-): {
+export function getDebugInfo<T>(reactive: Reactive<T> | Computed<T>): {
   type: "reactive" | "computed";
   subscribers: number;
   value: T;

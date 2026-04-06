@@ -1,15 +1,9 @@
 /**
  * Expression evaluator — safely evaluates template expressions against a state scope.
  * Used by the template parser to resolve {{ expr }} and directive values.
- *
- * Performance notes:
- *   - Compiled functions are cached by expression string — each unique expression
- *     is compiled exactly once via `new Function`, regardless of how many nodes use it.
- *   - Destructured-parameter style is used instead of `with()` so V8 can optimise
- *     the generated function body normally.
- *   - `parseInterpolations` returns [] when there are no {{ }} tokens, so callers
- *     can skip further work with a single `.length` check.
  */
+
+import { SCOPE_VAR, BANNED_GLOBALS } from "./constants";
 
 // ── Cache ────────────────────────────────────────────────────────────────────
 
@@ -24,50 +18,43 @@ const stmtCache = new Map<
 
 /**
  * Build a sandboxed function for an expression (read-only evaluation).
- *
- * Uses destructured parameters so V8 can optimise the generated function body.
- * e.g. keys = ["counter","user"]  →  ({ counter, user }) => (expr)
- *
- * Destructuring is safe for expressions because they only read values.
  */
 function buildExprFn(
   keys: string[],
   expr: string,
 ): (state: Record<string, any>) => any {
   const param = keys.length ? `{ ${keys.join(", ")} }` : "_";
-  return new Function(param, `return (${expr})`) as (
+  // Add banned globals as undefined parameters
+  const args = [param, ...BANNED_GLOBALS];
+  return new Function(...args, `return (${expr})`) as (
     state: Record<string, any>,
   ) => any;
 }
 
 /**
  * Build a sandboxed function for a statement (may mutate scope).
- *
- * Passes the scope as a single object parameter and uses explicit
- * property access so mutations write back to the reactive proxy.
- * e.g. "counter.count++" → (__s, $event) => { __s.counter.count++; }
- *
- * For bare-name assignments like "last = $event", we rewrite them to
- * "__s.last = $event" so they write back to the scope object.
- * This avoids `with()` entirely — safe on file:// and in strict mode.
  */
 function buildStmtFn(
   keys: string[],
   body: string,
 ): (state: Record<string, any>, event?: Event) => void {
-  // Rewrite bare-name references to __s.name so reads/writes go through scope
-  let rewritten = body;
-  for (const key of keys) {
-    // Replace word-boundary occurrences of key not preceded by a dot
-    rewritten = rewritten.replace(
-      new RegExp(`(?<![.\\w])\\b${key}\\b`, "g"),
-      `__s.${key}`,
-    );
-  }
-  return new Function("__s", "$event", `${rewritten};`) as (
+  // Pre-compile name regex to avoid loop overhead
+  const nameRegex = keys.length
+    ? new RegExp(`(?<![.\\w])\\b(${keys.join("|")})\\b`, "g")
+    : null;
+
+  const rewritten = nameRegex
+    ? body.replace(nameRegex, (match) => `${SCOPE_VAR}.${match}`)
+    : body;
+
+  const args = [SCOPE_VAR, "$event", ...BANNED_GLOBALS];
+  // In a browser, the Function constructor creates functions that have
+  // access to the global scope. We pass BANNED_GLOBALS as undefined arguments
+  // to shadow them and prevent access to sensitive APIs.
+  return new Function(...args, `return (${rewritten});`) as (
     state: Record<string, any>,
     event?: Event,
-  ) => void;
+  ) => any;
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -122,13 +109,13 @@ export function evaluate(expr: string, state: Record<string, any>): any {
 export function compileStatement(
   expr: string,
   scopeKeys: string[] = [],
-): (state: Record<string, any>, event?: Event) => void {
+): (state: Record<string, any>, event?: Event) => any {
   const trimmed = expr.trim();
   const cacheKey = `${scopeKeys.join(",")}|${trimmed}`;
 
   if (stmtCache.has(cacheKey)) return stmtCache.get(cacheKey)!;
 
-  let fn: (state: Record<string, any>, event?: Event) => void = () => {};
+  let fn: (state: Record<string, any>, event?: Event) => any = () => {};
   try {
     fn = buildStmtFn(scopeKeys, trimmed);
   } catch {
@@ -148,7 +135,11 @@ export function execute(
   event?: Event,
 ): void {
   try {
-    compileStatement(expr, Object.keys(state))(state, event);
+    const result = compileStatement(expr, Object.keys(state))(state, event);
+    // If the expression evaluates to a function (like "@click=doSomething"), call it.
+    if (typeof result === "function") {
+      result(event);
+    }
   } catch (e) {
     console.warn(`[reactive] Error executing statement "${expr}":`, e);
   }
@@ -197,11 +188,18 @@ export function parseInterpolations(template: string): InterpolationPart[] {
 }
 
 /**
- * Returns true if a string contains at least one {{ }} interpolation.
- * Uses a plain string check first to avoid regex overhead on most nodes.
+ * Returns true if an expression can be evaluated without any state scope.
+ * Used to identify constant expressions like {{ 4 + 4 }} or global-only
+ * expressions like {{ Math.PI }} that should be processed immediately.
  */
-export function hasInterpolation(str: string): boolean {
-  return str.includes("{{") && /\{\{[\s\S]+?\}\}/.test(str);
+export function isStaticExpression(expr: string): boolean {
+  try {
+    const fn = buildExprFn([], expr);
+    fn({});
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Clear both expression caches (useful for testing). */

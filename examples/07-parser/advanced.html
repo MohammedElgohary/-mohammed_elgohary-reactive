@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Parser Features — Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+      .category-card {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+      .item-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem;
+        border-bottom: 1px solid var(--border-light);
+      }
+      .item-row:last-child {
+        border-bottom: none;
+      }
+      .tag {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        background: var(--primary-light);
+        color: var(--primary);
+        font-weight: bold;
+      }
+      .controls {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.5rem;
+      }
+      .empty-state {
+        color: var(--muted);
+        font-style: italic;
+        padding: 1rem 0;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="index.html">Overview</a>
+        <a href="features.html">Features</a>
+        <a href="counter.html">Counter</a>
+        <a href="form.html">Form</a>
+        <a href="list.html">List</a>
+        <a href="advanced.html" class="active">Advanced</a>
+        <a href="scoped.html">Scoped</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <header class="page-header">
+        <h1>Advanced Parser Features</h1>
+        <p class="page-subtitle">
+          Demonstrating nested loops, conditional logic within lists, and
+          complex two-way bindings.
+        </p>
+      </header>
+
+      <div class="card">
+        <div class="section">
+          <div class="section-title">Inventory Manager (Nested :for + :if)</div>
+
+          <div :if="inventory.categories.length === 0" class="empty-state">
+            No categories found. Add one below.
+          </div>
+
+          <div :for="cat in inventory.categories" class="category-card">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <h2 style="margin: 0">{{ cat.name }}</h2>
+              <button
+                class="btn btn-danger"
+                @click="inventory.categories = inventory.categories.filter(c => c !== cat)"
+              >
+                Remove Category
+              </button>
+            </div>
+
+            <div class="controls">
+              <input
+                type="text"
+                placeholder="New item name..."
+                :model="cat.newItemName"
+                @keydown.enter="cat.newItemName && (cat.items.push({ name: cat.newItemName, stock: 0, active: true }), cat.newItemName = '')"
+              />
+              <button
+                class="btn btn-primary"
+                @click="cat.newItemName && (cat.items.push({ name: cat.newItemName, stock: 0, active: true }), cat.newItemName = '')"
+              >
+                Add Item
+              </button>
+            </div>
+
+            <div :if="cat.items.length === 0" class="empty-state">
+              This category is empty.
+            </div>
+
+            <div style="margin-top: 1rem">
+              <div :for="item in cat.items" class="item-row">
+                <input type="checkbox" :model="item.active" />
+                <span
+                  :style="{ textDecoration: item.active ? 'none' : 'line-through', opacity: item.active ? 1 : 0.5, flex: 1 }"
+                >
+                  {{ item.name }}
+                </span>
+
+                <div
+                  :if="item.active"
+                  style="display: flex; align-items: center; gap: 0.5rem"
+                >
+                  <span class="tag" :class="item.stock < 5 ? 'tag-urgent' : ''"
+                    >Stock: {{ item.stock }}</span
+                  >
+                  <button
+                    class="btn btn-secondary"
+                    style="padding: 0.2rem 0.5rem"
+                    @click="item.stock++"
+                  >
+                    +
+                  </button>
+                  <button
+                    class="btn btn-secondary"
+                    style="padding: 0.2rem 0.5rem"
+                    @click="item.stock > 0 && item.stock--"
+                  >
+                    -
+                  </button>
+                </div>
+
+                <button
+                  class="btn btn-danger"
+                  style="padding: 0.2rem 0.5rem"
+                  @click="cat.items = cat.items.filter(i => i !== item)"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="controls"
+            style="border-top: 1px solid var(--border); padding-top: 1rem"
+          >
+            <input
+              type="text"
+              placeholder="New category name..."
+              :model="ui.newCatName"
+              @keydown.enter="ui.newCatName && (inventory.categories.push({ name: ui.newCatName, items: [], newItemName: '' }), ui.newCatName = '')"
+            />
+            <button
+              class="btn btn-primary"
+              @click="ui.newCatName && (inventory.categories.push({ name: ui.newCatName, items: [], newItemName: '' }), ui.newCatName = '')"
+            >
+              Create Category
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section">
+          <div class="section-title">Debug State</div>
+          <pre
+            style="
+              background: var(--primary);
+              padding: 1rem;
+              border-radius: 4px;
+              overflow: auto;
+              max-height: 300px;
+            "
+          >
+{{ JSON.stringify(inventory, null, 2) }}</pre
+          >
+        </div>
+      </div>
+    </main>
+
+    <script src="../dist/reactive.iife.js"></script>
+    <script>
+      // Zero-config: use 'var' to automatically register state on window
+      var { reactive } = Reactive;
+
+      var inventory = reactive({
+        categories: [
+          {
+            name: "Electronics",
+            newItemName: "",
+            items: [
+              { name: "Laptop", stock: 10, active: true },
+              { name: "Phone", stock: 25, active: true },
+            ],
+          },
+          {
+            name: "Furniture",
+            newItemName: "",
+            items: [
+              { name: "Desk", stock: 5, active: true },
+              { name: "Chair", stock: 15, active: false },
+            ],
+          },
+        ],
+      });
+
+      var ui = reactive({
+        newCatName: "",
+      });
+    </script>
+  </body>
+</html>

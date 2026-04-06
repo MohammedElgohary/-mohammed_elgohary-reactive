@@ -83,19 +83,13 @@ export {
   compileExpression,
   compileStatement,
   parseInterpolations,
-  hasInterpolation,
   clearExpressionCache,
 } from "./expression";
 
 // Types
 export type { ComputedWithDispose } from "./computed";
 export type { AsyncComputed, AsyncComputedOptions } from "./computedAsync";
-export type {
-  InterpolationPart,
-  TemplateScope,
-  CompiledExpression,
-  CompiledStatement,
-} from "../types/parser";
+export type { InterpolationPart, TemplateScope } from "../types/parser";
 export type {
   Reactive,
   Computed,

@@ -9,8 +9,6 @@ import {
   bindProp,
   bindStyles,
   bindInput,
-  bindMultiple,
-  bind,
   render,
   sanitizeHtmlContent,
   escapeHtmlEntities,

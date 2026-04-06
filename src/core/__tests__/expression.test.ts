@@ -5,7 +5,6 @@ import {
   evaluate,
   execute,
   parseInterpolations,
-  hasInterpolation,
   clearExpressionCache,
 } from "../expression";
 
@@ -213,30 +212,5 @@ describe("parseInterpolations", () => {
     // This is correct — malformed templates degrade gracefully to plain text.
     const parts = parseInterpolations("{{ unclosed");
     expect(parts).toEqual([{ type: "static", value: "{{ unclosed" }]);
-  });
-});
-
-// ── hasInterpolation ──────────────────────────────────────────────────────────
-
-describe("hasInterpolation", () => {
-  it("returns true when {{ }} present", () => {
-    expect(hasInterpolation("Hello {{ name }}")).toBe(true);
-  });
-
-  it("returns false for plain text", () => {
-    expect(hasInterpolation("Hello World")).toBe(false);
-  });
-
-  it("returns false for empty string", () => {
-    expect(hasInterpolation("")).toBe(false);
-  });
-
-  it("returns true for expression-only string", () => {
-    expect(hasInterpolation("{{ count }}")).toBe(true);
-  });
-
-  it("returns false for {{ without closing }}", () => {
-    // hasInterpolation requires a complete {{ expr }} token
-    expect(hasInterpolation("{{ unclosed")).toBe(false);
   });
 });

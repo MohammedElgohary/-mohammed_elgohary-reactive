@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Parser · Form · Reactive</title>
     <link rel="stylesheet" href="../styles.css" />
-    <script src="../dist/reactive.iife.min.js"></script>
+    <script src="../dist/reactive.iife.js"></script>
     <style>
       .form-field {
         display: flex;
@@ -66,9 +66,11 @@
       <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
       <div class="topbar-links">
         <a href="index.html">Overview</a>
+        <a href="features.html">Features</a>
         <a href="counter.html">Counter</a>
         <a href="form.html" class="active">Form</a>
         <a href="list.html">List</a>
+        <a href="advanced.html">Advanced</a>
         <a href="scoped.html">Scoped</a>
       </div>
     </nav>
@@ -90,126 +92,70 @@
           </div>
 
           <div class="form-field">
-            <label for="inp-name">Full name</label>
+            <label for="inp-name">Full name (debounced)</label>
             <input
               id="inp-name"
               type="text"
               placeholder="Mohammed Ali"
-              :model="form.name"
+              :model.debounce.300="form.name"
             />
             <span
               class="field-error"
               :show="form.name.length > 0 && form.name.length < 3"
             >
-              Name must be at least 3 characters
+              Name is too short
             </span>
           </div>
 
-          <div class="form-field">
-            <label for="inp-email">Email</label>
-            <input
-              id="inp-email"
-              type="email"
-              placeholder="you@example.com"
-              :model="form.email"
-            />
-            <span
-              class="field-error"
-              :show="form.email.length > 0 && !form.email.includes('@')"
+          <form @submit.prevent="form.submitted = true">
+            <div class="form-field">
+              <label for="inp-email">Email</label>
+              <input
+                id="inp-email"
+                type="email"
+                placeholder="mohammed@example.com"
+                :model="form.email"
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="inp-role">Role</label>
+              <select id="inp-role" :model="form.role">
+                <option value="developer">Developer</option>
+                <option value="designer">Designer</option>
+                <option value="manager">Product Manager</option>
+              </select>
+            </div>
+
+            <button
+              class="btn btn-primary"
+              style="width: 100%"
+              :disabled="!form.name || !form.email"
             >
-              Enter a valid email address
-            </span>
-          </div>
+              Submit form
+            </button>
+          </form>
 
-          <div class="form-field">
-            <label for="inp-age">Age</label>
-            <input
-              id="inp-age"
-              type="number"
-              min="0"
-              max="120"
-              :model="form.age"
-            />
-          </div>
-
-          <div class="form-field">
-            <label for="inp-role">Role</label>
-            <select id="inp-role" :model="form.role">
-              <option value="">— select —</option>
-              <option value="developer">Developer</option>
-              <option value="designer">Designer</option>
-              <option value="manager">Manager</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-
-          <div class="form-field">
-            <label for="inp-bio">Bio</label>
-            <textarea
-              id="inp-bio"
-              rows="3"
-              placeholder="Tell us about yourself..."
-              :model="form.bio"
-            ></textarea>
-            <span style="font-size: 0.75rem; color: var(--muted)">
-              {{ form.bio.length }} / 200 characters
-            </span>
-          </div>
-
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              gap: 0.6rem;
-              margin-bottom: 1rem;
-            "
-          >
-            <input
-              id="inp-agree"
-              type="checkbox"
-              :model="form.agreed"
-              style="width: 16px; height: 16px"
-            />
-            <label for="inp-agree" style="font-size: 0.88rem"
-              >I agree to the terms</label
-            >
-          </div>
-
-          <button
-            class="btn btn-primary"
-            :disabled="!form.agreed || form.name.length < 3 || !form.email.includes('@')"
-            @click="form.submitted = true"
-          >
-            Submit
-          </button>
-
-          <div
+          <p
             :show="form.submitted"
-            style="
-              margin-top: 0.75rem;
-              padding: 0.6rem 1rem;
-              background: var(--success-l, #d1fae5);
-              border-radius: var(--r-md);
-              color: var(--success);
-              font-size: 0.88rem;
-            "
+            style="margin-top: 1rem; color: var(--success); font-size: 0.85rem"
           >
-            ✓ Form submitted successfully!
-          </div>
+            ✓ Form submitted successfully! (Try typing in the name field again
+            to see the debounce in action)
+          </p>
         </div>
 
-        <!-- Live preview -->
-        <div class="card">
+        <!-- Preview -->
+        <div>
           <div class="section-title" style="margin-bottom: 1rem">
             Live preview
           </div>
-
           <div class="preview-card">
             <div class="preview-avatar">
               {{ form.name ? form.name[0].toUpperCase() : '?' }}
             </div>
-            <div style="font-weight: 700; font-size: 1.05rem">
-              {{ form.name || 'Your Name' }}
+            <div style="font-size: 1.1rem; font-weight: 700">
+              {{ form.name || 'Anonymous' }}
             </div>
             <div
               style="
@@ -218,101 +164,33 @@
                 margin-top: 0.2rem;
               "
             >
-              {{ form.email || 'email@example.com' }}
+              {{ form.email || 'no-email@example.com' }} · {{ form.role }}
             </div>
             <div
               style="
-                margin-top: 0.5rem;
-                font-size: 0.82rem;
-                display: flex;
-                gap: 0.5rem;
-                flex-wrap: wrap;
-              "
-            >
-              <span
-                :show="form.role"
-                class="badge"
-                style="
-                  background: var(--primary-l);
-                  color: var(--primary);
-                  padding: 0.2rem 0.6rem;
-                  border-radius: 4px;
-                "
-              >
-                {{ form.role }}
-              </span>
-              <span :show="form.age > 0" style="color: var(--muted)">
-                Age {{ form.age }}
-              </span>
-            </div>
-            <div
-              :show="form.bio.length > 0"
-              style="
-                margin-top: 0.75rem;
-                font-size: 0.85rem;
+                margin-top: 1.25rem;
+                font-size: 0.8rem;
                 color: var(--muted);
-                border-top: 1px solid var(--border);
-                padding-top: 0.75rem;
               "
             >
-              {{ form.bio }}
+              Last Updated: {{ new Date().toLocaleTimeString() }} (Constant
+              expression)
             </div>
           </div>
-
-          <!-- Field summary -->
-          <div class="output-box" style="margin-top: 1rem">
-            <div class="stat-row">
-              <span class="stat-label">name</span>
-              <span>{{ form.name || '—' }}</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">email</span>
-              <span>{{ form.email || '—' }}</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">age</span>
-              <span>{{ form.age || '—' }}</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">role</span>
-              <span>{{ form.role || '—' }}</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">agreed</span>
-              <span>{{ form.agreed ? 'yes' : 'no' }}</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">valid</span>
-              <span
-                >{{ form.agreed && form.name.length >= 3 &&
-                form.email.includes('@') ? '✓ yes' : '✗ no' }}</span
-              >
-            </div>
-          </div>
-
-          <button
-            class="btn btn-secondary"
-            style="margin-top: 0.75rem; width: 100%"
-            @click="form.name = ''; form.email = ''; form.age = 0; form.role = ''; form.bio = ''; form.agreed = false; form.submitted = false"
-          >
-            Clear form
-          </button>
         </div>
       </div>
     </main>
 
     <script>
-      const { reactive, mount } = Reactive;
-      const form = reactive({
+      // Zero-config: use 'var' to automatically register state on window
+      var { reactive } = Reactive;
+
+      var form = reactive({
         name: "",
         email: "",
-        age: 0,
-        role: "",
-        bio: "",
-        agreed: false,
+        role: "developer",
         submitted: false,
       });
-      mount({ form });
     </script>
   </body>
 </html>

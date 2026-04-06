@@ -1,6 +1,6 @@
 /**
  * Template Parser — walks the DOM, detects which state each node references,
- * stamps data-scope automatically, and wires scoped reactive bindings.
+ * stamps the scope attribute automatically, and wires scoped reactive bindings.
  *
  * Supported syntax:
  *   {{ expr }}         — text interpolation
@@ -35,20 +35,94 @@
  *   - Event handlers receive only the state scope + $event.
  */
 
-import { bindText, bindAttr, bindStyles, bindHTML, bindInput } from "./bind";
+import { bindText, bindAttr, bindStyles, bindHTML } from "./bind";
 import { bindAction } from "./action";
 import { effect } from "./effect";
-import { evaluate, execute, parseInterpolations } from "./expression";
+import {
+  evaluate,
+  execute,
+  parseInterpolations,
+  isStaticExpression,
+} from "./expression";
 import {
   buildScope,
   getStateNames,
   registerState,
   discoverWindowStates,
 } from "./registry";
+import { processIf, processElse, processFor, processModel } from "./directives";
+import { SCOPE_ATTR } from "./constants";
 
-// ── Constants ────────────────────────────────────────────────────────────────
+// ── Modifiers ───────────────────────────────────────────────────────────────
 
-const SCOPE_ATTR = "data-scope";
+interface ParsedModifiers {
+  preventDefault?: boolean;
+  stopPropagation?: boolean;
+  self?: boolean;
+  once?: boolean;
+  capture?: boolean;
+  passive?: boolean;
+  debounce?: number;
+  number?: boolean;
+  trim?: boolean;
+  keys?: string[];
+}
+
+/**
+ * Parse a list of dot-separated modifiers into an options object.
+ * Handles unified dot-syntax like .debounce.300 and key modifiers like .enter.
+ */
+function parseModifiers(modifiers: string[]): ParsedModifiers {
+  const options: ParsedModifiers = {};
+  const map: Record<string, keyof ParsedModifiers> = {
+    prevent: "preventDefault",
+    stop: "stopPropagation",
+    self: "self",
+    once: "once",
+    capture: "capture",
+    passive: "passive",
+    number: "number",
+    trim: "trim",
+  };
+
+  for (let i = 0; i < modifiers.length; i++) {
+    const mod = modifiers[i];
+    if (map[mod]) {
+      (options as any)[map[mod]] = true;
+    } else if (mod === "debounce") {
+      const next = modifiers[i + 1];
+      const isNum = next && /^\d+$/.test(next);
+      options.debounce = isNum ? parseInt(next, 10) : 300;
+      if (isNum) i++;
+    } else {
+      (options.keys ??= []).push(mod);
+    }
+  }
+  return options;
+}
+
+// ── Style Injection ─────────────────────────────────────────────────────────
+
+/**
+ * Automatically inject the "cloak" CSS to prevent flash of unstyled {{ }} expressions.
+ * Injects body { opacity: 0 } immediately, which is revealed by autoMount().
+ */
+function injectCloakCSS(): void {
+  if (typeof document === "undefined" || document.getElementById("r-cloak"))
+    return;
+  const style = document.createElement("style");
+  style.id = "r-cloak";
+  style.textContent = `
+    body:not(.r-ready) { opacity: 0; }
+    body.r-ready { opacity: 1; transition: opacity 0.1s ease-in; }
+  `;
+  document.head.appendChild(style);
+}
+
+// Run immediately on load
+if (typeof window !== "undefined") {
+  injectCloakCSS();
+}
 
 // ── Regex cache ───────────────────────────────────────────────────────────────
 
@@ -108,17 +182,6 @@ function collectExprs(node: Element | Text): string[] {
 
   const el = node as Element;
 
-  // Text content interpolations in direct child text nodes
-  for (let i = 0; i < el.childNodes.length; i++) {
-    const child = el.childNodes[i];
-    if (child.nodeType === Node.TEXT_NODE) {
-      const parts = parseInterpolations(child.textContent ?? "");
-      for (const p of parts) {
-        if (p.type === "expr") exprs.push(p.value);
-      }
-    }
-  }
-
   // Attribute expressions — iterate live NamedNodeMap directly (no Array.from)
   const attrs = el.attributes;
   for (let i = 0; i < attrs.length; i++) {
@@ -163,25 +226,104 @@ function processTextNode(
 function processElement(
   el: Element,
   scope: Record<string, any>,
-): (() => void)[] {
+  names: string[],
+  nameRegexes: Map<string, RegExp>,
+  lastIfExpr?: string | null,
+): { cleanups: (() => void)[]; ifExpr?: string | null } {
   const cleanups: (() => void)[] = [];
 
-  // Snapshot attribute names+values before we start removing directive attrs.
-  // We iterate the snapshot so removals don't shift the live NamedNodeMap indices.
   const attrs = el.attributes;
   const snapshot: { name: string; value: string }[] = [];
   for (let i = 0; i < attrs.length; i++) {
     snapshot.push({ name: attrs[i].name, value: attrs[i].value });
   }
 
+  // 1. :for (highest priority)
+  const forAttr = snapshot.find(
+    (a) => a.name === ":for" || a.name.startsWith(":for."),
+  );
+  if (forAttr) {
+    el.removeAttribute(forAttr.name);
+    return processFor({
+      el,
+      value: forAttr.value,
+      scope,
+      names,
+      nameRegexes,
+      walkTree,
+      buildNameRegexes,
+    });
+  }
+
+  // 2. :if
+  const ifAttr = snapshot.find(
+    (a) => a.name === ":if" || a.name.startsWith(":if."),
+  );
+  if (ifAttr) {
+    el.removeAttribute(ifAttr.name);
+    return processIf({
+      el,
+      value: ifAttr.value,
+      scope,
+      names,
+      nameRegexes,
+      walkTree,
+      buildNameRegexes,
+    });
+  }
+
+  // 3. :else
+  const elseAttr = snapshot.find(
+    (a) => a.name === ":else" || a.name.startsWith(":else."),
+  );
+  if (elseAttr) {
+    el.removeAttribute(elseAttr.name);
+    return processElse(
+      {
+        el,
+        value: elseAttr.value,
+        scope,
+        names,
+        nameRegexes,
+        walkTree,
+        buildNameRegexes,
+      },
+      lastIfExpr ?? null,
+    );
+  }
+
   for (const { name, value } of snapshot) {
     // ── @event ───────────────────────────────────────────────────────────────
     if (name.startsWith("@")) {
-      const event = name.slice(1);
+      const fullEvent = name.slice(1);
+      const parts = fullEvent.split(".");
+      const event = parts[0];
+      const options = parseModifiers(parts.slice(1));
+
       cleanups.push(
-        bindAction(el as HTMLElement, event as any, (e: Event) => {
-          execute(value, scope, e);
-        }),
+        bindAction(
+          el as HTMLElement,
+          event as any,
+          (e: Event) => {
+            if (options.keys && e instanceof KeyboardEvent) {
+              const key = e.key.toLowerCase();
+              const match = options.keys.some((k: string) => {
+                if (k === "enter") return key === "enter";
+                if (k === "esc" || k === "escape") return key === "escape";
+                if (k === "space") return key === " ";
+                if (k === "tab") return key === "tab";
+                if (k === "up") return key === "arrowup";
+                if (k === "down") return key === "arrowdown";
+                if (k === "left") return key === "arrowleft";
+                if (k === "right") return key === "arrowright";
+                return key === k.toLowerCase();
+              });
+              if (!match) return;
+            }
+            execute(value, scope, e);
+          },
+          options,
+        ),
       );
       el.removeAttribute(name);
       continue;
@@ -189,26 +331,26 @@ function processElement(
 
     // ── :directives ──────────────────────────────────────────────────────────
     if (name.startsWith(":")) {
-      const directive = name.slice(1);
+      const fullDirective = name.slice(1);
+      const parts = fullDirective.split(".");
+      const directive = parts[0];
+      const options = parseModifiers(parts.slice(1));
       el.removeAttribute(name);
 
       if (directive === "model") {
-        const expr = value.trim();
-        const dotIdx = expr.lastIndexOf(".");
-        if (dotIdx !== -1) {
-          const objExpr = expr.slice(0, dotIdx);
-          const key = expr.slice(dotIdx + 1);
-          const obj = evaluate(objExpr, scope);
-          if (obj && key in obj) {
-            cleanups.push(bindInput(el as HTMLInputElement, obj, key as any));
-          } else {
-            console.warn(`[reactive] :model="${expr}" — could not resolve`);
-          }
-        } else {
-          console.warn(
-            `[reactive] :model="${expr}" — use "stateName.key" syntax`,
-          );
-        }
+        const result = processModel(
+          {
+            el,
+            value,
+            scope,
+            names,
+            nameRegexes,
+            walkTree,
+            buildNameRegexes,
+          },
+          options,
+        );
+        cleanups.push(...result.cleanups);
         continue;
       }
 
@@ -274,7 +416,7 @@ function processElement(
     }
   }
 
-  return cleanups;
+  return { cleanups, ifExpr: null };
 }
 
 // ── Tree walker ───────────────────────────────────────────────────────────────
@@ -288,7 +430,7 @@ function processElement(
  * @param names       — known state names for scope detection
  * @param nameRegexes — pre-compiled word-boundary regexes (one per name)
  */
-function walkTree(
+export function walkTree(
   root: Element | Document,
   scope: Record<string, any>,
   names: string[],
@@ -298,59 +440,118 @@ function walkTree(
 
   const walker = document.createTreeWalker(
     root as Node,
-    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
+    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_COMMENT,
     null,
   );
 
-  let node: Node | null = walker.nextNode();
+  let node: Node | null = walker.currentNode;
+  let lastIfExpr: string | null = null;
+  let isFirst = true;
 
   while (node) {
+    if (!isFirst) {
+      node = walker.nextNode();
+    }
+    isFirst = false;
+    if (!node) break;
+
     if (node.nodeType === Node.TEXT_NODE) {
       const text = node as Text;
       const exprs = collectExprs(text);
-      const refs = extractRefs(exprs, names, nameRegexes);
-      if (refs.length > 0) {
-        const nodeScope = buildNodeScope(refs, scope);
-        const stop = processTextNode(text, nodeScope);
-        if (stop) cleanups.push(stop);
+      if (exprs.length > 0) {
+        const refs = extractRefs(exprs, names, nameRegexes);
+        if (refs.length > 0 || exprs.every(isStaticExpression)) {
+          // Stamp scope on parent element
+          const parent = text.parentElement;
+          if (parent && refs.length > 0) {
+            const existing = parent.getAttribute(SCOPE_ATTR);
+            const merged = existing
+              ? Array.from(new Set([...existing.split(" "), ...refs]))
+                  .sort()
+                  .join(" ")
+              : refs.join(" ");
+            parent.setAttribute(SCOPE_ATTR, merged);
+          }
+          const stop = processTextNode(text, scope);
+          if (stop) cleanups.push(stop);
+        }
+      }
+      if (node.textContent?.trim()) {
+        lastIfExpr = null;
       }
     } else if (node.nodeType === Node.ELEMENT_NODE) {
       const el = node as Element;
       const exprs = collectExprs(el);
-      const refs = extractRefs(exprs, names, nameRegexes);
-      if (refs.length > 0) {
-        // Merge with any existing data-scope value so repeated parse() calls
-        // on the same element accumulate scope names rather than replacing them.
-        const existing = el.getAttribute(SCOPE_ATTR);
-        const merged = existing
-          ? Array.from(new Set([...existing.split(" "), ...refs]))
-              .sort()
-              .join(" ")
-          : refs.join(" ");
-        el.setAttribute(SCOPE_ATTR, merged);
-        const nodeScope = buildNodeScope(refs, scope);
-        cleanups.push(...processElement(el, nodeScope));
+      const hasDirectives = Array.from(el.attributes).some(
+        (a) => a.name.startsWith(":") || a.name.startsWith("@"),
+      );
+
+      if (exprs.length > 0 || hasDirectives) {
+        if (
+          hasDirectives ||
+          extractRefs(exprs, names, nameRegexes).length > 0 ||
+          exprs.every(isStaticExpression)
+        ) {
+          // Stamp _f only for top-level registered states
+          const topLevelRefs = extractRefs(exprs, names, nameRegexes);
+          if (topLevelRefs.length > 0) {
+            const existing = el.getAttribute(SCOPE_ATTR);
+            const merged = existing
+              ? Array.from(new Set([...existing.split(" "), ...topLevelRefs]))
+                  .sort()
+                  .join(" ")
+              : topLevelRefs.join(" ");
+            el.setAttribute(SCOPE_ATTR, merged);
+          }
+
+          // Clear any stale placeholder tracking from previous parse runs
+          delete (el as any)._placeholder;
+
+          const result = processElement(
+            el,
+            scope,
+            names,
+            nameRegexes,
+            lastIfExpr,
+          );
+          cleanups.push(...result.cleanups);
+
+          if (result.ifExpr) {
+            lastIfExpr = result.ifExpr;
+          } else if (el.hasAttribute(":else") || (el as any)._placeholder) {
+            lastIfExpr = null;
+          } else {
+            lastIfExpr = null;
+          }
+
+          if ((el as any)._placeholder) {
+            const ph = (el as any)._placeholder;
+            // Only move the walker to the placeholder if it's actually in a tree
+            // that the walker can continue from. If it's detached, we should
+            // still stop walking the subtree of 'el', but we don't move the walker.
+            if (ph.parentNode) {
+              walker.currentNode = ph;
+            } else {
+              // If detached, we can't move walker.currentNode to ph because nextNode()
+              // will return null. We must skip the children of el manually or stop.
+              // For a root node, stopping is correct.
+              if (el === root) break;
+            }
+
+            if (el === root) {
+              isFirst = false;
+            }
+          }
+        } else {
+          lastIfExpr = null;
+        }
+      } else {
+        lastIfExpr = null;
       }
     }
-    node = walker.nextNode();
   }
 
   return () => cleanups.forEach((s) => s());
-}
-
-/**
- * Build a scope object containing only the referenced state names.
- * Keeps the expression sandbox minimal — no access to unreferenced states.
- */
-function buildNodeScope(
-  refs: string[],
-  fullScope: Record<string, any>,
-): Record<string, any> {
-  const scope: Record<string, any> = {};
-  for (const name of refs) {
-    if (name in fullScope) scope[name] = fullScope[name];
-  }
-  return scope;
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -415,24 +616,40 @@ export function autoMount(root: Element = document.body): () => void {
   }
 
   const nameRegexes = buildNameRegexes(names);
+  const cleanups: (() => void)[] = [];
+
   const cleanup = walkTree(root, scope, names, nameRegexes);
-  _autoMountCleanup = cleanup;
+  cleanups.push(cleanup);
+
+  // ── Enhanced DOM updates: watch for dynamic changes ───────────────────────
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      mutation.addedNodes.forEach((node) => {
+        if (
+          node.nodeType === Node.ELEMENT_NODE ||
+          node.nodeType === Node.TEXT_NODE
+        ) {
+          cleanups.push(walkTree(node as Element, scope, names, nameRegexes));
+        }
+      });
+    }
+  });
+
+  observer.observe(root, { childList: true, subtree: true });
+  cleanups.push(() => observer.disconnect());
+
+  const finalCleanup = () => cleanups.forEach((s) => s());
+  _autoMountCleanup = finalCleanup;
+
   // Reveal body — also set a hard fallback in case this path is skipped
   if (typeof document !== "undefined") {
     document.body.classList.add("r-ready");
   }
-  return cleanup;
+  return finalCleanup;
 }
 
-/**
- * Wire autoMount to run after all synchronous scripts have executed.
- * Uses queueMicrotask so that reactive() calls in the user's <script> tag
- * complete before the parser scans the DOM.
- */
 let _autoMountCleanup: (() => void) | null = null;
 let _autoMountPending = false;
-// Set to true when mount() is called explicitly — prevents the deferred
-// scheduleAutoMount microtask from tearing down and re-running the mount.
 let _explicitMountCalled = false;
 
 /**

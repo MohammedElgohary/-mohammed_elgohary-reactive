@@ -16,27 +16,10 @@
       "default": "./dist/reactive.js"
     },
     "./min": {
-      "types": "./dist/reactive.d.ts",
       "import": "./dist/reactive.min.js",
       "default": "./dist/reactive.min.js"
     },
-    "./minimal": {
-      "types": "./dist/reactive.minimal.d.ts",
-      "import": "./dist/reactive.minimal.js",
-      "default": "./dist/reactive.minimal.js"
-    },
-    "./minimal/browser": {
-      "types": "./dist/reactive.minimal.d.ts",
-      "default": "./dist/reactive.minimal.iife.js"
-    },
-    "./browser": {
-      "types": "./dist/reactive.d.ts",
-      "default": "./dist/reactive.iife.min.js"
-    },
-    "./iife": {
-      "types": "./dist/reactive.d.ts",
-      "default": "./dist/reactive.iife.min.js"
-    },
+    "./browser": "./dist/reactive.iife.js",
     "./dist/*": "./dist/*"
   },
   "files": [
@@ -79,10 +62,10 @@
     "node": ">=18.0.0"
   },
   "sideEffects": [
-    "./dist/reactive.iife.min.js",
-    "./dist/reactive.minimal.iife.js"
+    "./dist/reactive.iife.js"
   ],
   "devDependencies": {
+    "@types/node": "^25.5.2",
     "@vitest/coverage-v8": "^1.0.0",
     "@vitest/ui": "^1.0.0",
     "jsdom": "^23.0.0",

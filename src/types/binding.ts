@@ -20,6 +20,17 @@ export interface BindingOptions {
   allowDangerousAttributes?: boolean;
 }
 
+export interface InputOptions {
+  /** Debounce delay in milliseconds */
+  debounce?: number;
+
+  /** Automatically cast value to number */
+  number?: boolean;
+
+  /** Automatically trim whitespace */
+  trim?: boolean;
+}
+
 export interface SecurityConfig {
   /** Log security warnings to console */
   logWarnings: boolean;
@@ -31,6 +42,6 @@ export interface SecurityConfig {
 export interface MultiBinding {
   selector: string | Element;
   type: "text" | "html" | "attr" | "prop" | "class" | "style" | "styles";
-  target: string;
+  target?: string;
   source: BindingSource<any>;
 }
