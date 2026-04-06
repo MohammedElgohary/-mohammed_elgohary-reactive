@@ -52,11 +52,32 @@ export function bindAction<
   }
 
   const wrappedHandler = (e: Event) => {
-    if (options?.preventDefault) e.preventDefault();
-    if (options?.stopPropagation) e.stopPropagation();
-    if (options?.stopImmediatePropagation) e.stopImmediatePropagation();
+    if (options?.self && e.target !== element) return;
     handler(e as ElementEventMapType<E>[K]);
   };
+
+  let finalHandler = wrappedHandler;
+
+  if (options?.debounce && options.debounce > 0) {
+    let timeoutId: any;
+    finalHandler = (e: Event) => {
+      // Modifiers that must be synchronous
+      if (options?.preventDefault) e.preventDefault();
+      if (options?.stopPropagation) e.stopPropagation();
+      if (options?.stopImmediatePropagation) e.stopImmediatePropagation();
+
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => wrappedHandler(e), options.debounce);
+    };
+  } else {
+    // Normal synchronous handler
+    finalHandler = (e: Event) => {
+      if (options?.preventDefault) e.preventDefault();
+      if (options?.stopPropagation) e.stopPropagation();
+      if (options?.stopImmediatePropagation) e.stopImmediatePropagation();
+      wrappedHandler(e);
+    };
+  }
 
   const listenerOptions: AddEventListenerOptions = {
     capture: options?.capture,
@@ -64,12 +85,12 @@ export function bindAction<
     passive: options?.passive,
   };
 
-  element.addEventListener(event as string, wrappedHandler, listenerOptions);
+  element.addEventListener(event as string, finalHandler, listenerOptions);
 
   return () => {
     element.removeEventListener(
       event as string,
-      wrappedHandler,
+      finalHandler,
       listenerOptions,
     );
   };

@@ -207,7 +207,7 @@ describe("bind - Complete Coverage", () => {
       option3.selected = true;
       select.dispatchEvent(new Event("input"));
 
-      expect((selected as any).value).toEqual(["a", "c"]);
+      expect(Array.from(selected)).toEqual(["a", "c"]);
     });
 
     it("should handle select single", () => {

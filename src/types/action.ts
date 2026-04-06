@@ -20,6 +20,12 @@ export interface ActionOptions {
 
   /** Passive event listener (improves scroll performance) */
   passive?: boolean;
+
+  /** Only trigger if event.target is the element itself */
+  self?: boolean;
+
+  /** Debounce delay in milliseconds */
+  debounce?: number;
 }
 
 export type ActionHandler<E extends Event = Event> = (event: E) => void;

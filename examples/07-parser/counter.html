@@ -5,16 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Parser · Counter · Reactive</title>
     <link rel="stylesheet" href="../styles.css" />
-    <script src="../dist/reactive.iife.min.js"></script>
+    <script src="../dist/reactive.iife.js"></script>
   </head>
   <body>
     <nav class="topbar">
       <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
       <div class="topbar-links">
         <a href="index.html">Overview</a>
+        <a href="features.html">Features</a>
         <a href="counter.html" class="active">Counter</a>
         <a href="form.html">Form</a>
         <a href="list.html">List</a>
+        <a href="advanced.html">Advanced</a>
         <a href="scoped.html">Scoped</a>
       </div>
     </nav>
@@ -55,6 +57,12 @@
             >
               doubled: {{ counter.count * 2 }} &nbsp;|&nbsp; squared: {{
               counter.count * counter.count }}
+            </div>
+            <div
+              style="margin-top: 1rem; color: var(--muted); font-size: 0.75rem"
+            >
+              Constant Expression: {{ 4 + 4 }} = 8 | JS Op: {{
+              Math.abs(counter.count) }} (absolute)
             </div>
           </div>
         </div>
@@ -137,9 +145,9 @@
     </main>
 
     <script>
-      const { reactive, mount } = Reactive;
-      const counter = reactive({ count: 0 });
-      mount({ counter });
+      // Zero-config: use 'var' to automatically register state on window
+      var { reactive } = Reactive;
+      var counter = reactive({ count: 0 });
     </script>
   </body>
 </html>

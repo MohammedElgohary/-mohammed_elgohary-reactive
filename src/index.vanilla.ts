@@ -2,98 +2,19 @@
  * Reactive — Vanilla JS / Browser build
  */
 
-// Inject flash-prevention CSS as soon as the script loads.
-// body starts hidden; mount() adds r-ready to reveal it.
-if (typeof document !== "undefined") {
-  const s = document.createElement("style");
-  s.textContent =
-    "body{opacity:0}body.r-ready{opacity:1;transition:opacity .1s}";
-  document.head.appendChild(s);
+import * as ReactiveCore from "./core";
+
+// Manually attach to global scope for browser compatibility
+if (typeof window !== "undefined") {
+  (window as any).Reactive = (window as any).Reactive || {};
+  Object.assign((window as any).Reactive, ReactiveCore);
 }
 
-export {
-  reactive,
-  computed,
-  computedAsync,
-  effect,
-  batch,
-  isBatchingUpdates,
-  readonly,
-  readonlyObject,
-  watch,
-  watchMultiple,
-  watchProperty,
-  ref,
-  toRaw,
-  markRaw,
-  isRaw,
-  shallowReactive,
-  isReactive,
-  isComputed,
-  setDebug,
-  isDebugEnabled,
-  trackReactive,
-  getDebugInfo,
-  logTrackedReactive,
-  clearDebugTracking,
-  // Template parser
-  mount,
-  unmount,
-  parse,
-  autoMount,
-  registerState,
-  unregisterState,
-  clearRegistry,
-  buildScope,
-  getStateNames,
-  evaluate,
-  execute,
-  compileExpression,
-  compileStatement,
-  parseInterpolations,
-  hasInterpolation,
-  clearExpressionCache,
-  // DOM bindings
-  bindText,
-  bindHTML,
-  bindAttr,
-  bindProp,
-  bindClass,
-  bindStyle,
-  bindStyles,
-  bindInput,
-  bindMultiple,
-  bind,
-  render,
-  escapeHtmlEntities,
-  sanitizeHtmlContent,
-  isUrlSafe,
-  configureReactiveSecurity,
-  // Events
-  bindAction,
-  onClick,
-  onDblClick,
-  onInput,
-  onChange,
-  onSubmit,
-  onKeyDown,
-  onKeyUp,
-  onFocus,
-  onBlur,
-  onMouseEnter,
-  onMouseLeave,
-  onScroll,
-  onKey,
-  onEnter,
-  onEscape,
-} from "./core";
+export * from "./core";
 
 export type {
   Reactive,
   Computed,
-  ComputedWithDispose,
-  AsyncComputed,
-  AsyncComputedOptions,
   EffectFn,
   EffectCleanup,
   EffectOptions,
@@ -103,9 +24,10 @@ export type {
   WatchOptions,
   BindingSource,
   BindingOptions,
+  InputOptions,
   SecurityConfig,
   MultiBinding,
-  ActionOptions,
-  ActionHandler,
-  KeyFilter,
-} from "./core";
+} from "./types";
+
+export type { ComputedWithDispose } from "./core/computed";
+export type { AsyncComputed, AsyncComputedOptions } from "./core/computedAsync";

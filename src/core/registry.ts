@@ -3,6 +3,8 @@
  * Used by the template parser to build expression scopes.
  */
 
+import { BANNED_GLOBALS } from "./constants";
+
 const _registry = new Map<string, Record<string, any>>();
 
 // WeakSet of all reactive proxies — used by discoverWindowStates()
@@ -24,7 +26,13 @@ export function discoverWindowStates(): void {
       if (_registry.has(key)) continue;
       if (!/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key)) continue;
       const val = (window as any)[key];
-      if (val && typeof val === "object" && _reactiveProxies.has(val)) {
+      // Register reactive objects OR functions defined by the user (non-native)
+      if (
+        (val && typeof val === "object" && _reactiveProxies.has(val)) ||
+        (typeof val === "function" &&
+          !val.toString().includes("[native code]") &&
+          !BANNED_GLOBALS.includes(key))
+      ) {
         _registry.set(key, val);
       }
     }

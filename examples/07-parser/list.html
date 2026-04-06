@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Parser · List · Reactive</title>
     <link rel="stylesheet" href="../styles.css" />
-    <script src="../dist/reactive.iife.min.js"></script>
+    <script src="../dist/reactive.iife.js"></script>
     <style>
       .todo-item {
         display: flex;
@@ -66,9 +66,11 @@
       <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
       <div class="topbar-links">
         <a href="index.html">Overview</a>
+        <a href="features.html">Features</a>
         <a href="counter.html">Counter</a>
         <a href="form.html">Form</a>
         <a href="list.html" class="active">List</a>
+        <a href="advanced.html">Advanced</a>
         <a href="scoped.html">Scoped</a>
       </div>
     </nav>
@@ -77,12 +79,39 @@
       <header class="page-header">
         <h1>List</h1>
         <p class="page-subtitle">
-          Dynamic list rendering using <code>:html</code> with sanitized output,
+          Dynamic list rendering using structural directives (<code>:for</code>, <code>:if</code>),
           add/remove items, and filter state — all reactive.
         </p>
       </header>
 
       <div class="card">
+        <!-- Stats with JS Operations -->
+        <div
+          class="section"
+          style="
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+          "
+        >
+          <div class="section-title">Summary (JS Expressions)</div>
+          <div style="display: flex; gap: 1rem; font-size: 0.85rem">
+            <span>Total: <strong>{{ todos.items.length }}</strong></span>
+            <span
+              >Completed:
+              <strong
+                >{{ todos.items.filter(t => t.done).length }}</strong
+              ></span
+            >
+            <span
+              >Pending:
+              <strong
+                >{{ todos.items.filter(t => !t.done).length }}</strong
+              ></span
+            >
+          </div>
+        </div>
+
         <!-- Add item -->
         <div class="section">
           <div class="section-title">Add task</div>
@@ -92,7 +121,7 @@
               type="text"
               placeholder="Task description..."
               :model="ui.newText"
-              @keydown="ui.newText && $event.key === 'Enter' && (todos.items.push({ id: Date.now(), text: ui.newText, done: false, tag: ui.newTag }), ui.newText = '')"
+              @keydown.enter="ui.newText && (todos.items.push({ id: Date.now(), text: ui.newText, done: false, tag: ui.newTag }), ui.newText = '')"
               style="
                 flex: 1;
                 min-width: 180px;
@@ -101,7 +130,6 @@
                 border-radius: var(--r-md);
                 background: var(--surface-2);
                 color: var(--text);
-                font-size: 0.9rem;
                 outline: none;
               "
             />
@@ -183,7 +211,7 @@
           </div>
         </div>
 
-        <!-- List rendered via :html -->
+        <!-- List rendered via :for -->
         <div class="section">
           <div class="section-title">
             Tasks
@@ -195,30 +223,41 @@
                 margin-left: 0.5rem;
               "
             >
-              (rendered via <code>:html</code>)
+              (rendered via <code>:for</code>)
             </span>
           </div>
 
           <div
-            :show="todos.items.length === 0"
+            :if="todos.items.length === 0"
             style="color: var(--muted); font-size: 0.9rem; padding: 0.5rem 0"
           >
             No tasks yet. Add one above.
           </div>
 
-          <!-- :html renders the filtered list as sanitized HTML -->
+          <!-- :for renders the filtered list with scoped item access -->
           <div
-            :html='todos.items
-            .filter(i => ui.filter === &apos;all&apos; ? true : ui.filter === &apos;done&apos; ? i.done : ui.filter === &apos;active&apos; ? !i.done : i.tag === ui.filter)
-            .map(i => `
-              &lt;div class="todo-item ${i.done ? &apos;done&apos; : &apos;&apos;}"&gt;
-                &lt;input type="checkbox" ${i.done ? &apos;checked&apos; : &apos;&apos;} data-id="${i.id}" class="todo-check" style="width:16px;height:16px;cursor:pointer" /&gt;
-                &lt;span class="todo-text"&gt;${i.text}&lt;/span&gt;
-                &lt;span class="todo-tag tag-${i.tag}"&gt;${i.tag}&lt;/span&gt;
-                &lt;button data-id="${i.id}" class="todo-del btn btn-danger" style="padding:.2rem .5rem;font-size:.75rem"&gt;✕&lt;/button&gt;
-              &lt;/div&gt;
-            `).join(&apos;&apos;)'
-          ></div>
+            :for="item in todos.items.filter(i => ui.filter === 'all' ? true : ui.filter === 'done' ? i.done : ui.filter === 'active' ? !i.done : i.tag === ui.filter)"
+            class="todo-item"
+            :class="{ done: item.done }"
+          >
+            <input
+              type="checkbox"
+              :model="item.done"
+              class="todo-check"
+              style="width: 16px; height: 16px; cursor: pointer"
+            />
+            <span class="todo-text">{{ item.text }}</span>
+            <span class="todo-tag" :class="'tag-' + item.tag"
+              >{{ item.tag }}</span
+            >
+            <button
+              @click="todos.items = todos.items.filter(i => i !== item)"
+              class="btn btn-danger"
+              style="padding: 0.2rem 0.5rem; font-size: 0.75rem"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         <!-- Bulk actions -->
@@ -251,8 +290,9 @@
     </main>
 
     <script>
-      const { reactive, mount, onClick, onChange } = Reactive;
-      const todos = reactive({
+      // Zero-config: use 'var' to automatically register state on window
+      var { reactive } = Reactive;
+      var todos = reactive({
         items: [
           { id: 1, text: "Build the template parser", done: true, tag: "work" },
           { id: 2, text: "Write examples", done: false, tag: "work" },
@@ -260,24 +300,7 @@
           { id: 4, text: "Buy groceries", done: false, tag: "personal" },
         ],
       });
-      const ui = reactive({ filter: "all", newText: "", newTag: "work" });
-      mount({ todos, ui });
-
-      onClick(document, (e) => {
-        const del = e.target.closest(".todo-del");
-        if (del) {
-          const id = Number(del.dataset.id);
-          todos.items = todos.items.filter((i) => i.id !== id);
-        }
-      });
-      onChange(document, (e) => {
-        const cb = e.target.closest(".todo-check");
-        if (cb) {
-          const id = Number(cb.dataset.id);
-          const item = todos.items.find((i) => i.id === id);
-          if (item) item.done = cb.checked;
-        }
-      });
+      var ui = reactive({ filter: "all", newText: "", newTag: "work" });
     </script>
   </body>
 </html>

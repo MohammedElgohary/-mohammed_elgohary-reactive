@@ -38,6 +38,11 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Check bundle sizes
+        run: |
+          echo "Bundle sizes:"
+          ls -lh dist/reactive.js dist/reactive.min.js dist/reactive.iife.js dist/reactive.d.ts
+
       - name: Bump version (manual trigger only)
         if: github.event_name == 'workflow_dispatch'
         run: |
@@ -95,5 +100,6 @@ jobs:
             dist/
             package.json
             README.md
+            CHANGELOG.md
             LICENSE
           retention-days: 30

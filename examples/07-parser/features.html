@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Parser · Features · Reactive</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script src="../dist/reactive.iife.js"></script>
+    <style>
+      .result {
+        font-weight: bold;
+        color: var(--success);
+      }
+      .label {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
+        display: block;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="topbar">
+      <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
+      <div class="topbar-links">
+        <a href="index.html">Overview</a>
+        <a href="features.html" class="active">Features</a>
+        <a href="counter.html">Counter</a>
+        <a href="form.html">Form</a>
+        <a href="list.html">List</a>
+        <a href="advanced.html">Advanced</a>
+        <a href="scoped.html">Scoped</a>
+      </div>
+    </nav>
+
+    <main class="page">
+      <header class="page-header">
+        <h1>Reactive v1.0.3 Features</h1>
+        <p class="page-subtitle">
+          Complete showcase of the latest template parser features, modifiers, and structural directives.
+        </p>
+      </header>
+
+      <!-- Constant Expressions -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">1. Constant Expressions</div>
+          <p class="section-desc">Expressions that don't depend on state are evaluated once at mount.</p>
+          <div class="output-box">
+            <code>{{ 100 + 200 }}</code> = <span class="result">{{ 100 + 200 }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- JS Operations -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">2. JavaScript Operations</div>
+          <p class="section-desc">Run any safe JS directly in your templates.</p>
+          <div class="grid">
+            <div class="output-box">
+              <span class="label">Math.PI.toFixed(4)</span>
+              <span class="result">{{ Math.PI.toFixed(4) }}</span>
+            </div>
+            <div class="output-box">
+              <span class="label">Array Mapping</span>
+              <span class="result">{{ [1,2,3].map(x => x * 10).join(', ') }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event Modifiers -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">3. Event Modifiers & Key Handling</div>
+          <div class="grid">
+            <div class="output-box">
+              <span class="label">@click.once</span>
+              <button class="btn btn-primary" @click.once="app.clicks++">Click me once: {{ app.clicks }}</button>
+            </div>
+            <div class="output-box">
+              <span class="label">@keydown.enter</span>
+              <input type="text" placeholder="Press Enter..." @keydown.enter="app.lastKey = 'Enter'" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border); background: var(--surface);">
+              <div style="margin-top: 0.5rem">Last key: <span class="result">{{ app.lastKey }}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Debouncing -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">4. Debouncing</div>
+          <p class="section-desc">Prevents rapid updates (useful for search or expensive logic).</p>
+          <div class="grid">
+            <div class="output-box">
+              <span class="label">@input.debounce.500</span>
+              <input type="text" placeholder="Type fast..." @input.debounce.500="app.search = $event.target.value" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border); background: var(--surface);">
+              <div style="margin-top:0.5rem">Search: <span class="result">{{ app.search }}</span></div>
+            </div>
+            <div class="output-box">
+              <span class="label">:model.debounce.500</span>
+              <input type="text" placeholder="Type fast..." :model.debounce.500="app.debouncedModel" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border); background: var(--surface);">
+              <div style="margin-top:0.5rem">Model: <span class="result">{{ app.debouncedModel }}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Modifiers -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">5. Input Modifiers</div>
+          <div class="grid">
+            <div class="output-box">
+              <span class="label">:model.number (automatic casting)</span>
+              <input type="text" :model.number="app.age" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border); background: var(--surface);">
+              <div style="margin-top:0.5rem">Type of age: <span class="result">{{ typeof app.age }}</span> ({{ app.age }})</div>
+            </div>
+            <div class="output-box">
+              <span class="label">:model.trim (automatic trim)</span>
+              <input type="text" :model.trim="app.username" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border); background: var(--surface);">
+              <div style="margin-top:0.5rem">Username: <span class="result">"{{ app.username }}"</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Structural Directives -->
+      <div class="card">
+        <div class="section">
+          <div class="section-title">6. Structural Directives (:if & :for)</div>
+          <p class="section-desc">Declarative conditional and list rendering.</p>
+          
+          <div class="grid">
+            <div class="output-box">
+              <span class="label">:if conditional</span>
+              <button class="btn btn-secondary" @click="app.showAdmin = !app.showAdmin">Toggle Admin</button>
+              <div :if="app.showAdmin" style="margin-top: 0.5rem; padding: 0.5rem; background: #fee2e2; color: #991b1b; border-radius: 4px;">
+                Admin Panel Visible
+              </div>
+              <div :else style="margin-top: 0.5rem; padding: 0.5rem; background: #f1f5f9; color: #475569; border-radius: 4px;">
+                Standard View
+              </div>
+            </div>
+            <div class="output-box">
+              <span class="label">:for loop</span>
+              <ul style="margin: 0; padding-left: 1.2rem;">
+                <li :for="user in app.users" :style="{ color: user.active ? 'var(--success)' : 'inherit' }">
+                  {{ user.name }} ({{ user.role }})
+                </li>
+              </ul>
+              <button class="btn btn-secondary" style="margin-top: 0.5rem; font-size: 0.8rem; padding: 0.3rem 0.6rem;" @click="app.users.push({ name: 'New User', role: 'guest', active: false })">Add Guest</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      // Zero-config: use 'var' to automatically register state on window
+      var { reactive } = Reactive;
+
+      var app = reactive({
+        clicks: 0,
+        lastKey: "None",
+        search: "",
+        debouncedModel: "",
+        age: 25,
+        username: "",
+        showAdmin: false,
+        users: [
+          { name: "Alice", role: "admin", active: true },
+          { name: "Bob", role: "editor", active: false },
+        ],
+      });
+    </script>
+  </body>
+</html>

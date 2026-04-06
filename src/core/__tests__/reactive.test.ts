@@ -135,7 +135,7 @@ describe("reactive", () => {
       const callback2 = vi.fn();
 
       const unsub1 = count.subscribe(callback1);
-      const unsub2 = count.subscribe(callback2);
+      count.subscribe(callback2);
 
       unsub1();
       count.value = 5;

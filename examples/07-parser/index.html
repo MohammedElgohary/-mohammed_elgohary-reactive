@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Template Parser · Reactive</title>
     <link rel="stylesheet" href="../styles.css" />
-    <script src="../dist/reactive.iife.min.js"></script>
+    <script src="../dist/reactive.iife.js"></script>
     <style>
       .example-grid {
         display: grid;
@@ -70,9 +70,11 @@
       <a href="../index.html" class="topbar-brand">⚡ Reactive</a>
       <div class="topbar-links">
         <a href="index.html" class="active">Overview</a>
+        <a href="features.html">Features</a>
         <a href="counter.html">Counter</a>
         <a href="form.html">Form</a>
         <a href="list.html">List</a>
+        <a href="advanced.html">Advanced</a>
         <a href="scoped.html">Scoped</a>
       </div>
     </nav>
@@ -82,8 +84,8 @@
         <h1>Template Parser</h1>
         <p class="page-subtitle">
           Write reactive UIs directly in HTML. Define state with
-          <code>reactive()</code> — the library auto-mounts on
-          <code>DOMContentLoaded</code>. Zero manual wiring.
+          <code>reactive()</code> and call <code>mount()</code> — the library
+          wires everything automatically. Zero manual selectors.
         </p>
       </header>
 
@@ -117,11 +119,19 @@
             </div>
             <div class="stat-row">
               <span class="stat-label">Two-way</span
-              ><code>:model="user.name"</code>
+              ><code>:model.debounce.300="user.name"</code>
             </div>
             <div class="stat-row">
               <span class="stat-label">Event</span
-              ><code>@click="counter.count++"</code>
+              ><code>@click.stop="counter.count++"</code>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Modifier</span
+              ><code>@submit.prevent="save"</code>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">JS Ops</span
+              ><code>{{ [1,2].map(x => x*2) }}</code>
             </div>
           </div>
         </div>
@@ -158,6 +168,18 @@
       </div>
 
       <div class="example-grid" style="margin-top: 1.5rem">
+        <a class="ex-card" href="features.html">
+          <div class="ex-icon">✨</div>
+          <div class="ex-title">Features</div>
+          <div class="ex-desc">
+            Complete showcase of v1.0.3 features: modifiers, debouncing, and JS
+            operations.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">modifiers</span><span class="tag">.debounce</span
+            ><span class="tag">JS Ops</span>
+          </div>
+        </a>
         <a class="ex-card" href="counter.html">
           <div class="ex-icon">🔢</div>
           <div class="ex-title">Counter</div>
@@ -184,10 +206,21 @@
           <div class="ex-icon">📋</div>
           <div class="ex-title">List</div>
           <div class="ex-desc">
-            Dynamic list rendering using :html with sanitized output.
+            Dynamic list rendering using structural directives.
           </div>
           <div class="ex-tags">
-            <span class="tag">:html</span><span class="tag">@click</span>
+            <span class="tag">:for</span><span class="tag">:if</span>
+          </div>
+        </a>
+        <a class="ex-card" href="advanced.html">
+          <div class="ex-icon">🚀</div>
+          <div class="ex-title">Advanced</div>
+          <div class="ex-desc">
+            Nested loops, conditional lists, and complex two-way bindings.
+          </div>
+          <div class="ex-tags">
+            <span class="tag">nested :for</span><span class="tag">:else</span
+            ><span class="tag">complex state</span>
           </div>
         </a>
         <a class="ex-card" href="scoped.html">
@@ -204,11 +237,11 @@
       </div>
     </main>
 
-    <script src="../dist/reactive.iife.min.js"></script>
+    <script src="../dist/reactive.iife.js"></script>
     <script>
-      const { reactive, mount } = Reactive;
-      const counter = reactive({ count: 0 });
-      mount({ counter });
+      // Zero-config: use 'var' to automatically register state on window
+      var { reactive } = Reactive;
+      var counter = reactive({ count: 0 });
     </script>
   </body>
 </html>

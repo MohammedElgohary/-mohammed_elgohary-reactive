@@ -46,7 +46,6 @@ export {
   compileExpression,
   compileStatement,
   parseInterpolations,
-  hasInterpolation,
   clearExpressionCache,
   // DOM bindings
   bindText,
@@ -105,6 +104,4 @@ export type {
   KeyFilter,
   InterpolationPart,
   TemplateScope,
-  CompiledExpression,
-  CompiledStatement,
 } from "./core";
